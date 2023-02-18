@@ -15,7 +15,7 @@ namespace getopt.net {
 		/// <summary>
 		/// The option has a mandatory argument.
 		/// </summary>
-		Reguired,
+		Required,
 
 		/// <summary>
 		/// Arguments are optional for this argument.

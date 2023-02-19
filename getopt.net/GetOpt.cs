@@ -215,7 +215,7 @@ namespace getopt.net {
         protected int ParseShortOption(out string? optArg) {
             var curOpt = AppArgs[CurrentIndex][m_optPosition];
             if (ShortOptRequiresArg(ref curOpt)) {
-                if (m_optPosition + 1 > AppArgs[CurrentIndex].Length) {
+                if (m_optPosition + 1 >= AppArgs[CurrentIndex].Length) {
                     if (!IsLongOption(ref AppArgs[CurrentIndex + 1]) && !IsShortOption(ref AppArgs[CurrentIndex + 1])) {
                         optArg = AppArgs[CurrentIndex + 1];
                         ResetOptPosition();

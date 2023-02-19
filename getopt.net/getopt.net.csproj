@@ -14,7 +14,11 @@ GitHub: https://github.com/SimonCahill/getopt.net</Description>
     <PublisherName>Simon Cahill</PublisherName>
     <SupportUrl>https://docs.simonc.eu/docs/getopt.net</SupportUrl>
     <ReleaseVersion>0.2.0</ReleaseVersion>
-    <SynchReleaseVersion>false</SynchReleaseVersion>
+    <SynchReleaseVersion>true</SynchReleaseVersion>
+    <RepositoryUrl >https://github.com/SimonCahill/getopt.net</RepositoryUrl>
+    <PackageProjectUrl >https://docs.simonc.eu/docs/getopt.net</PackageProjectUrl>
+    <RepositoryType >Git</RepositoryType>
+
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">

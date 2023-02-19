@@ -118,6 +118,8 @@ namespace getopt.net {
 
             outOptArg = null; // pre-set this here so we don't have to set it during every condition
 
+            if (CurrentIndex >= AppArgs.Length) { return -1; }
+
             if (string.IsNullOrEmpty(AppArgs[m_currentIndex])) {
                 if (!IgnoreEmptyOptions) { throw new ParseException("Encountered null or empty argument!"); }
                 else { return 0; }

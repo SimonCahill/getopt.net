@@ -108,7 +108,7 @@ namespace getopt.net {
         /// <exception cref="ParseException">If ignoring errors is disabled (default) and an error occurs.</exception>
         public int GetNextOpt(out string? outOptArg) {
             if (AppArgs.Length == 0) {
-                if (IgnoreEmptyAppArgs) {
+                if (!IgnoreEmptyAppArgs) {
                     throw new ParseException("No arguments found for parsing!");
                 } else {
                     outOptArg = null;

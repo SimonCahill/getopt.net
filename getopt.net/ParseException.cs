@@ -9,10 +9,17 @@ namespace getopt.net {
             Option = optString;
         }
 
-        /// <summary>
-        /// The option that caused the exception.
-        /// </summary>
-        public string? Option { get; set; }
+		public override string ToString() {
+			if (string.IsNullOrEmpty(Option)) {
+				return base.ToString();
+			}
+			return $"Error occurred while parsing { Option }: { Message }";
+		}
+
+		/// <summary>
+		/// The option that caused the exception.
+		/// </summary>
+		public string? Option { get; set; }
     }
 }
 

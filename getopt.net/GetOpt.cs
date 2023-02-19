@@ -59,6 +59,14 @@ namespace getopt.net {
         public bool IgnoreInvalidOptions { get; set; } = false;
 
         /// <summary>
+        /// Gets or sets a value indicating whether or not empty <see cref="AppArgs"/> are ignored or throw an exception.
+        /// </summary>
+        /// <remarks >
+        /// Default: <code >true</code>
+        /// </remarks>
+        public bool IgnoreEmptyAppArgs { get; set; } = true;
+
+        /// <summary>
         /// Gets the current index of the app arguments being parsed.
         /// </summary>
         public int CurrentIndex => m_currentIndex;
@@ -100,7 +108,12 @@ namespace getopt.net {
         /// <exception cref="ParseException">If ignoring errors is disabled (default) and an error occurs.</exception>
         public int GetNextOpt(out string? outOptArg) {
             if (AppArgs.Length == 0) {
-                throw new ParseException("No arguments found for parsing!");
+                if (IgnoreEmptyAppArgs) {
+                    throw new ParseException("No arguments found for parsing!");
+                } else {
+                    outOptArg = null;
+                    return -1;
+                }
             }
 
             outOptArg = null; // pre-set this here so we don't have to set it during every condition

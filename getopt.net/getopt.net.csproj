@@ -4,6 +4,25 @@
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Description>Getopt.net is a cleanroom port of GNU getopt, adapted for common patterns found in .net framework libraries.
+
+This library is open source and licensed under the BSD 3-clause license.
+GitHub: https://github.com/SimonCahill/getopt.net</Description>
+    <Authors>Simon Cahill (contact@simonc.eu)</Authors>
+    <Copyright>© Simon Cahill</Copyright>
+    <PackageId>getopt.net-bsd</PackageId>
+    <PublisherName>Simon Cahill</PublisherName>
+    <SupportUrl>https://docs.simonc.eu/docs/getopt.net</SupportUrl>
   </PropertyGroup>
 
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <WarningLevel>7</WarningLevel>
+    <WarningLevel>7</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <AssemblyName>getopt.net-bsd</AssemblyName>
+    <DebugSymbols>true</DebugSymbols>
+    <WarningLevel>4</WarningLevel>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
 </Project>

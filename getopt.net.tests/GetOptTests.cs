@@ -195,6 +195,33 @@
             Assert.AreEqual(optArg, "test");
         }
 
+        [TestMethod]
+        public void TestGetNextOptShort_MultipleOptsAndArgs() {
+            Options = new[] {
+                new Option { Name = "config",           ArgumentType = ArgumentType.Required,   Flag = IntPtr.Zero, Value = 'c' },
+                new Option { Name = "log-lvl",          ArgumentType = ArgumentType.Required,   Flag = IntPtr.Zero, Value = 'L' },
+                new Option { Name = "help",             ArgumentType = ArgumentType.None,       Flag = IntPtr.Zero, Value = 'h' },
+                new Option { Name = "version",          ArgumentType = ArgumentType.None,       Flag = IntPtr.Zero, Value = 'v' },
+                new Option { Name = "check-updates",    ArgumentType = ArgumentType.None,       Flag = IntPtr.Zero, Value = 'U' },
+                new Option { Name = "reset-cfg",        ArgumentType = ArgumentType.Optional,   Flag = IntPtr.Zero, Value = '%' }
+                // add more as required
+            };
+            ShortOpts = "c:L:hv%U";
+            DoubleDashStopsParsing = true;
+
+            AppArgs = new[] { "-ctest.json", "-Ltrace" };
+
+            var optChar = (char)GetNextOpt(out var optArg);
+            Assert.AreEqual(optChar, 'c');
+            Assert.IsNotNull(optArg);
+            Assert.AreEqual(optArg, "test.json");
+
+            optChar = (char)GetNextOpt(out optArg);
+            Assert.AreEqual(optChar, 'L');
+            Assert.IsNotNull(optArg);
+            Assert.AreEqual(optArg, "trace");
+        }
+
     }
 
 }

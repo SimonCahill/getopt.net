@@ -172,6 +172,28 @@
             Assert.AreEqual(optArg, "test");
         }
 
+        [TestMethod]
+        public void TestGetNextOptShort_AllOptsInSameString() {
+            Options = new[] {
+                new Option { Name = "help",     ArgumentType = ArgumentType.None,       Flag = IntPtr.Zero,     Value = 'h' },
+                new Option { Name = "config",   ArgumentType = ArgumentType.Required,   Flag = IntPtr.Zero,     Value = 'c' },
+                new Option { Name = "version",  ArgumentType = ArgumentType.None,       Flag = IntPtr.Zero,     Value = 'v' }
+            };
+            ShortOpts = "hvc:"; // intentionally leaving out config to test fallbar to long opts
+            AppArgs = new[] { "-hvctest" };
+
+            var optChar = (char)GetNextOpt(out var optArg);
+            Assert.AreEqual(optChar, 'h');
+            Assert.IsNull(optArg);
+
+            optChar = (char)GetNextOpt(out optArg);
+            Assert.AreEqual(optChar, 'v');
+            Assert.IsNull(optArg);
+
+            optChar = (char)GetNextOpt(out optArg);
+            Assert.AreEqual(optChar, 'c');
+            Assert.AreEqual(optArg, "test");
+        }
 
     }
 

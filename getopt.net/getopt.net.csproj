@@ -13,6 +13,8 @@ GitHub: https://github.com/SimonCahill/getopt.net</Description>
     <PackageId>getopt.net-bsd</PackageId>
     <PublisherName>Simon Cahill</PublisherName>
     <SupportUrl>https://docs.simonc.eu/docs/getopt.net</SupportUrl>
+    <ReleaseVersion>0.2.0</ReleaseVersion>
+    <SynchReleaseVersion>false</SynchReleaseVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">

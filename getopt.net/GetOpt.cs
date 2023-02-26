@@ -92,8 +92,12 @@ namespace getopt.net {
         /// Compiled Regex.
         /// </summary>
         /// <returns>A pre-compiled and optimised regular expression object.</returns>
+#if NET7_0_OR_GREATER
         [GeneratedRegex(@"([\s]|[=])", RegexOptions.IgnoreCase | RegexOptions.Compiled)]
         protected static partial Regex ArgumentSplitter();
+#else
+        protected static Regex ArgumentSplitter() => new(@"([\s]|[=])", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+#endif
 
         /// <summary>
         /// Resets the option position to 1.
@@ -294,7 +298,11 @@ namespace getopt.net {
             }
 
             optName = splitString[0];
+#if NET6_0_OR_GREATER
             argVal = string.Join("", splitString[2..]);
+#else
+            argVal = string.Join("", splitString.Skip(2));
+#endif
             return true;
         }
 

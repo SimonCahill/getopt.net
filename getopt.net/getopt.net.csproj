@@ -14,7 +14,7 @@ GitHub: https://github.com/SimonCahill/getopt.net</Description>
     <PackageId>getopt.net-bsd</PackageId>
     <PublisherName>Simon Cahill</PublisherName>
     <SupportUrl>https://docs.simonc.eu/docs/getopt.net</SupportUrl>
-    <ReleaseVersion>0.2.0</ReleaseVersion>
+    <ReleaseVersion>0.3.0</ReleaseVersion>
     <SynchReleaseVersion>true</SynchReleaseVersion>
     <RepositoryUrl >https://github.com/SimonCahill/getopt.net</RepositoryUrl>
     <PackageProjectUrl >https://docs.simonc.eu/docs/getopt.net</PackageProjectUrl>

@@ -139,6 +139,7 @@ namespace getopt.net {
             }
 
             if (IgnoreInvalidOptions) {
+                outOptArg = AppArgs[CurrentIndex];
                 return InvalidOptChar;
             } else {
                 throw new ParseException(AppArgs[CurrentIndex], "Unexpected option argument!");

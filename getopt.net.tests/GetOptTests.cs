@@ -238,7 +238,7 @@
 			AppArgs = new[] { "filename.txt" };
             IgnoreInvalidOptions = true;
             string optArg;
-			Assert.AreEqual('!', (char)GetNextOpt(out optArg));
+			Assert.AreEqual(InvalidOptChar, (char)GetNextOpt(out optArg));
 		}
 
 		[TestMethod]
@@ -247,7 +247,7 @@
 			Options = Array.Empty<Option>();
 			DoubleDashStopsParsing = true;
 			AppArgs = new[] { "--", "--filename.txt" };
-			GetNextOpt(out var _); // Something expressing the existence of --filename.txt should happen here.
+			Assert.AreEqual(-1, GetNextOpt(out var _));
 		}
 
 		[TestMethod]
@@ -273,7 +273,7 @@
 			Assert.AreEqual('t', optChar);
 			Assert.IsNull(optArg);
 			optChar = (char)GetNextOpt(out optArg);
-            Assert.AreEqual('!', optChar);
+            Assert.AreEqual(InvalidOptChar, optChar);
             Assert.IsNotNull(optArg);
             Assert.AreEqual("filename.txt", optArg);
 		}
@@ -295,9 +295,13 @@
 			ShortOpts = "-t";
 			Options = Array.Empty<Option>();
 			AppArgs = new[] { "filename.txt", "-t" };
+            IgnoreInvalidOptions = true;
+
 			var optChar = (char)GetNextOpt(out var optArg);
-			Assert.AreEqual('\x01', optChar);
-			Assert.IsNull("filename.txt");
+			Assert.AreEqual(NonOptChar, optChar);
+			Assert.IsNotNull(optArg);
+            Assert.AreEqual("filename.txt", optArg);
+
 			optChar = (char)GetNextOpt(out optArg);
 			Assert.AreEqual('t', optChar);
 			Assert.IsNull(optArg);
@@ -308,10 +312,29 @@
 			ShortOpts = "t";
 			Options = Array.Empty<Option>();
 			AppArgs = new[] { "filename.txt", "-t" };
-			GetNextOpt(out var _); // Something expressing the existence of filename.txt should happen here.
-			GetNextOpt(out var _); // Something expressing the existence of -t, as if it were a filename, should happen here.
+            IgnoreInvalidOptions = true;
+
+			var optChar = (char)GetNextOpt(out var optArg);
+            Assert.AreEqual(InvalidOptChar, optChar);
+            Assert.IsNotNull(optArg);
+            Assert.AreEqual("filename.txt", optArg);
+
+			optChar = (char)GetNextOpt(out optArg);
+            Assert.AreEqual('t', optChar);
+            Assert.IsNull(optArg);
 		}
 
-	}
+        [TestMethod]
+        [ExpectedException(typeof(ParseException))]
+        public void TestFilenameBeforeOptionPosixParsing_ExpectException() {
+            ShortOpts = "t";
+            Options = Array.Empty<Option>();
+            AppArgs = new[] { "filename.txt", "-t" };
+
+            var optChar = (char)GetNextOpt(out var optArg);
+            optChar = (char)GetNextOpt(out optArg);
+        }
+
+    }
 
 }

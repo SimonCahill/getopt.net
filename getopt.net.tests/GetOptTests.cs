@@ -222,6 +222,92 @@
             Assert.AreEqual("trace", optArg);
         }
 
-    }
+		[TestMethod]
+        [ExpectedException(typeof(ParseException))]
+		public void TestFilenameOnly_ExpectException() {
+			ShortOpts = string.Empty;
+			Options = Array.Empty<Option>();
+			AppArgs = new[] { "filename.txt" };
+			GetNextOpt(out var _); // Something expressing the existence of filename.txt should happen here.
+		}
+
+		[TestMethod]
+		public void TestFilenameOnly_IgnoreInvalidOpts() {
+			ShortOpts = string.Empty;
+			Options = Array.Empty<Option>();
+			AppArgs = new[] { "filename.txt" };
+            IgnoreInvalidOptions = true;
+            string optArg;
+			Assert.AreEqual('!', (char)GetNextOpt(out optArg));
+		}
+
+		[TestMethod]
+		public void TestFilenameWithPreceedingDashes() {
+			ShortOpts = string.Empty;
+			Options = Array.Empty<Option>();
+			DoubleDashStopsParsing = true;
+			AppArgs = new[] { "--", "--filename.txt" };
+			GetNextOpt(out var _); // Something expressing the existence of --filename.txt should happen here.
+		}
+
+		[TestMethod]
+        [ExpectedException(typeof(ParseException))]
+		public void TestOptionBeforeFilename_ExpectException() {
+			ShortOpts = "t";
+			Options = Array.Empty<Option>();
+			AppArgs = new[] { "-t", "filename.txt" };
+			var optChar = (char)GetNextOpt(out var optArg);
+			Assert.AreEqual('t', optChar);
+			Assert.IsNull(optArg);
+			GetNextOpt(out var _); // Something expressing the existence of filename.txt should happen here.
+		}
+
+		[TestMethod]
+		public void TestOptionBeforeFilename_IgnoreInvalidOpts() {
+			ShortOpts = "t";
+			Options = Array.Empty<Option>();
+			AppArgs = new[] { "-t", "filename.txt" };
+            IgnoreInvalidOptions = true;
+
+			var optChar = (char)GetNextOpt(out var optArg);
+			Assert.AreEqual('t', optChar);
+			Assert.IsNull(optArg);
+			GetNextOpt(out var _); // Something expressing the existence of filename.txt should happen here.
+		}
+
+		[TestMethod]
+		public void TestFilenameBeforeOptionGnuParsing() {
+			ShortOpts = "t";
+			Options = Array.Empty<Option>();
+			AppArgs = new[] { "filename.txt", "-t" };
+			var optChar = (char)GetNextOpt(out var optArg);
+			Assert.AreEqual('t', optChar);
+			Assert.IsNull(optArg);
+			GetNextOpt(out var _); // Something expressing the existence of filename.txt should happen here.
+		}
+
+		[TestMethod]
+		public void TestFilenameBeforeOptionGnuInOrderParsing() {
+			ShortOpts = "-t";
+			Options = Array.Empty<Option>();
+			AppArgs = new[] { "filename.txt", "-t" };
+			var optChar = (char)GetNextOpt(out var optArg);
+			Assert.AreEqual('\x01', optChar);
+			Assert.IsNull("filename.txt");
+			optChar = (char)GetNextOpt(out optArg);
+			Assert.AreEqual('t', optChar);
+			Assert.IsNull(optArg);
+		}
+
+		[TestMethod]
+		public void TestFilenameBeforeOptionPosixParsing() {
+			ShortOpts = "t";
+			Options = Array.Empty<Option>();
+			AppArgs = new[] { "filename.txt", "-t" };
+			GetNextOpt(out var _); // Something expressing the existence of filename.txt should happen here.
+			GetNextOpt(out var _); // Something expressing the existence of -t, as if it were a filename, should happen here.
+		}
+
+	}
 
 }

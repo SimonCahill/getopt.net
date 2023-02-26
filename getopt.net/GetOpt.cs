@@ -56,9 +56,9 @@ namespace getopt.net {
         /// Gets or sets a value indicating whether or not invalid arguments should be ignored or not.
         /// </summary>
         /// <remarks >
-        /// If this is set to <code >false</code> and an invalid argument is found, then '!' will be returned.
+        /// If this is set to <code >true</code> and an invalid argument is found, then '!' will be returned.
         /// </remarks>
-        public bool IgnoreInvalidOptions { get; set; } = false;
+        public bool IgnoreInvalidOptions { get; set; } = true;
 
         /// <summary>
         /// Gets or sets a value indicating whether or not empty <see cref="AppArgs"/> are ignored or throw an exception.

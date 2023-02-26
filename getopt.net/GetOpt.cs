@@ -9,8 +9,8 @@ namespace getopt.net {
     /// </summary>
     public partial class GetOpt {
 
-        const char MissingArgChar = '?';
-        const char InvalidOptChar = '!';
+        public const char MissingArgChar = '?';
+        public const char InvalidOptChar = '!';
 
         /// <summary>
         /// An optional list of long options to go with the short options.

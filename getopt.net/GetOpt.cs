@@ -69,6 +69,14 @@ namespace getopt.net {
         public bool IgnoreEmptyAppArgs { get; set; } = true;
 
         /// <summary>
+        /// Gets or sets a value indicating whether or not option parsing shall stop or not.
+        /// </summary>
+        /// <remarks >
+        /// When this is set to <code >true</code>, all remaining arguments in AppArgs will be returned without being parsed.
+        /// </remarks>
+        public bool StopParsingOptions { get; set; } = false;
+
+        /// <summary>
         /// Gets the current index of the app arguments being parsed.
         /// </summary>
         public int CurrentIndex => m_currentIndex;
@@ -154,7 +162,17 @@ namespace getopt.net {
                 if (!IgnoreEmptyOptions) { throw new ParseException("Encountered null or empty argument!"); }
                 else { return 0; }
             } else if (DoubleDashStopsParsing && AppArgs[CurrentIndex].Equals(DoubleDash, StringComparison.InvariantCultureIgnoreCase)) {
-                return -1;
+                m_currentIndex++;
+                StopParsingOptions = true;
+                return GetNextOpt(out outOptArg);
+            }
+
+            // Check here if StopParsingOptions is true;
+            // if so, then simply return NonOptChar and set outOptArg to the value of the argument
+            if (StopParsingOptions) {
+                outOptArg = AppArgs[CurrentIndex];
+                m_currentIndex++;
+                return NonOptChar;
             }
 
             if (IsLongOption(ref AppArgs[m_currentIndex])) {

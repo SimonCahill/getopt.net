@@ -325,12 +325,19 @@ namespace getopt.net {
             }
 
             CheckLongOpt:
-            if (Options.Length == 0) { throw new ParseException(shortOpt.ToString(), "Invalid option list!"); }
+            if (Options.Length == 0) {
+                if (IgnoreInvalidOptions) {
+                    shortOpt = InvalidOptChar;
+                    return false;
+                } else {
+                    throw new ParseException(shortOpt.ToString(), "Invalid option list!");
+                }
+            }
             var nullableOpt = Options.FindOptionOrDefault(shortOpt);
 
             if (nullableOpt == null) {
                 if (IgnoreInvalidOptions) {
-                    shortOpt = '?';
+                    shortOpt = InvalidOptChar;
                     return false;
                 } else { throw new ParseException(shortOpt.ToString(), "Encountered unknown option!"); }
             }

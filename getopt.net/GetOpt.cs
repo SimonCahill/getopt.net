@@ -11,6 +11,8 @@ namespace getopt.net {
 
         public const char MissingArgChar = '?';
         public const char InvalidOptChar = '!';
+        public const char NonOptChar     = (char)1;
+        public const string DoubleDash   = "--";
 
         /// <summary>
         /// An optional list of long options to go with the short options.
@@ -105,6 +107,30 @@ namespace getopt.net {
         protected void ResetOptPosition() => m_optPosition = 1;
 
         /// <summary>
+        /// Gets a value indicating whether or not non-options should be handled as if they were the argument of an option with the character code 1.
+        /// </summary>
+        /// <remarks >
+        /// From the getopt man page:
+        /// 
+        /// > If the first character of optstring is '-', then each nonoption
+        /// > argv-element is handled as if it were the argument of an option
+        /// > with character code 1.  (This is used by programs that were
+        /// > written to expect options and other argv-elements in any order
+        /// > and that care about the ordering of the two.)
+        /// </remarks>
+        /// <returns></returns>
+        protected bool MustReturnChar1() => ShortOpts?.Length > 0 && ShortOpts[0] == '-';
+
+        /// <summary>
+        /// If the first character of
+        /// ShortOpts is '+' or the environment variable POSIXLY_CORRECT is
+        /// set, then option processing stops as soon as a nonoption argument
+        /// is encountered.
+        /// </summary>
+        /// <returns><code >true</code> if parsing stops when the first non-option string is found.</returns>
+        protected bool MustStopParsing() => ShortOpts?.Length > 0 && ShortOpts[0] == '+' || Environment.GetEnvironmentVariable("POSIXLY_CORRECT") is not null;
+
+        /// <summary>
         /// Gets the next option in the list.
         /// </summary>
         /// <param name="outOptArg">Out var; the argument for the option (if applicable).</param>
@@ -127,6 +153,8 @@ namespace getopt.net {
             if (string.IsNullOrEmpty(AppArgs[m_currentIndex])) {
                 if (!IgnoreEmptyOptions) { throw new ParseException("Encountered null or empty argument!"); }
                 else { return 0; }
+            } else if (DoubleDashStopsParsing && AppArgs[CurrentIndex].Equals(DoubleDash, StringComparison.InvariantCultureIgnoreCase)) {
+                return -1;
             }
 
             if (IsLongOption(ref AppArgs[m_currentIndex])) {
@@ -140,7 +168,9 @@ namespace getopt.net {
 
             if (IgnoreInvalidOptions) {
                 outOptArg = AppArgs[CurrentIndex];
-                return InvalidOptChar;
+                m_currentIndex++;
+                if (MustReturnChar1()) { return NonOptChar; }
+                else { return InvalidOptChar; }
             } else {
                 throw new ParseException(AppArgs[CurrentIndex], "Unexpected option argument!");
             }
@@ -191,6 +221,11 @@ namespace getopt.net {
                     }
 
                     optArg = AppArgs[CurrentIndex + 1];
+                    if (MustStopParsing()) { // POSIX behaviour desired
+                        m_currentIndex = AppArgs.Length;
+                        break;
+                    }
+
                     m_currentIndex += 1;
                     break;
                 case ArgumentType.None:
@@ -224,7 +259,13 @@ namespace getopt.net {
                     if (!IsLongOption(ref AppArgs[CurrentIndex + 1]) && !IsShortOption(ref AppArgs[CurrentIndex + 1])) {
                         optArg = AppArgs[CurrentIndex + 1];
                         ResetOptPosition();
-                        m_currentIndex += 2;
+
+                        if (!MustStopParsing()) {
+                            m_currentIndex = AppArgs.Length; // POSIX behaviour desired
+                        } else {
+                            m_currentIndex += 2;
+                        }
+
                         return curOpt;
                     }
 

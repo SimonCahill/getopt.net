@@ -51,13 +51,13 @@
         [TestMethod]
         public void TestStripDashes() {
             AppArgs = new[] { "nodashes" };
-            Assert.AreEqual(StripDashes(true), "nodashes");
+            Assert.AreEqual("nodashes", StripDashes(true));
 
             AppArgs = new[] { "-single-dash" };
-            Assert.AreEqual(StripDashes(true), "single-dash");
+            Assert.AreEqual("single-dash", StripDashes(true));
 
             AppArgs = new[] { "--double-dash" };
-            Assert.AreEqual(StripDashes(true), "double-dash");
+            Assert.AreEqual("double-dash", StripDashes(true));
         }
 
         [TestMethod]
@@ -67,8 +67,8 @@
 
             string? optArg = "";
             char optChar = (char)GetNextOpt(out optArg);
-            Assert.AreEqual(optChar, 'h');
-            Assert.AreEqual(optArg, null);
+            Assert.AreEqual('h', optChar);
+            Assert.AreEqual(null, optArg);
         }
 
         [TestMethod]
@@ -78,8 +78,8 @@
 
             string? optArg = "";
             char optChar = (char)GetNextOpt(out optArg);
-            Assert.AreEqual(optChar, 't');
-            Assert.AreEqual(optArg, "test");
+            Assert.AreEqual('t', optChar);
+            Assert.AreEqual("test", optArg);
         }
 
         [TestMethod]
@@ -89,8 +89,8 @@
 
             string? optArg = "";
             char optChar = (char)GetNextOpt(out optArg);
-            Assert.AreEqual(optChar, 't');
-            Assert.AreEqual(optArg, "test");
+            Assert.AreEqual('t', optChar);
+            Assert.AreEqual("test", optArg);
         }
 
         [TestMethod]
@@ -100,8 +100,8 @@
 
             string? optArg = "";
             char optChar = (char)GetNextOpt(out optArg);
-            Assert.AreEqual(optChar, 't');
-            Assert.AreEqual(optArg, "test");
+            Assert.AreEqual('t', optChar);
+            Assert.AreEqual("test", optArg);
         }
 
         [TestMethod]
@@ -115,20 +115,20 @@
             };
 
             char optChar = (char)GetNextOpt(out string? optArg);
-            Assert.AreEqual(optChar, 't');
-            Assert.AreEqual(optArg, "test");
+            Assert.AreEqual('t', optChar);
+            Assert.AreEqual("test", optArg);
 
             optChar = (char)GetNextOpt(out optArg);
-            Assert.AreEqual(optChar, '1');
-            Assert.AreEqual(optArg, null);
+            Assert.AreEqual('1', optChar);
+            Assert.AreEqual(null, optArg);
 
             optChar = (char)GetNextOpt(out optArg);
-            Assert.AreEqual(optChar, '2');
-            Assert.AreEqual(optArg, "test3");
+            Assert.AreEqual('2', optChar);
+            Assert.AreEqual("test3", optArg);
 
             optChar = (char)GetNextOpt(out optArg);
-            Assert.AreEqual(optChar, '3');
-            Assert.AreEqual(optArg, "test4");
+            Assert.AreEqual('3', optChar);
+            Assert.AreEqual("test4", optArg);
         }
 
         [TestMethod]
@@ -137,16 +137,16 @@
             AppArgs = new[] { "-h", "-ctest", "-v" };
 
             var optChar = (char)GetNextOpt(out var optArg);
-            Assert.AreEqual(optChar, 'h');
-            Assert.AreEqual(optArg, null);
+            Assert.AreEqual('h', optChar);
+            Assert.AreEqual(null, optArg);
 
             optChar = (char)GetNextOpt(out optArg);
-            Assert.AreEqual(optChar, 'c');
-            Assert.AreEqual(optArg, "test");
+            Assert.AreEqual('c', optChar);
+            Assert.AreEqual("test", optArg);
 
             optChar = (char)GetNextOpt(out optArg);
-            Assert.AreEqual(optChar, 'v');
-            Assert.AreEqual(optArg, null);
+            Assert.AreEqual('v', optChar);
+            Assert.AreEqual(null, optArg);
         }
 
         [TestMethod]
@@ -160,16 +160,16 @@
             AppArgs = new[] { "-hv", "-ctest" };
 
             var optChar = (char)GetNextOpt(out var optArg);
-            Assert.AreEqual(optChar, 'h');
+            Assert.AreEqual('h', optChar);
             Assert.IsNull(optArg);
 
             optChar = (char)GetNextOpt(out optArg);
-            Assert.AreEqual(optChar, 'v');
+            Assert.AreEqual('v', optChar);
             Assert.IsNull(optArg);
 
             optChar = (char)GetNextOpt(out optArg);
-            Assert.AreEqual(optChar, 'c');
-            Assert.AreEqual(optArg, "test");
+            Assert.AreEqual('c', optChar);
+            Assert.AreEqual("test", optArg);
         }
 
         [TestMethod]
@@ -183,16 +183,16 @@
             AppArgs = new[] { "-hvctest" };
 
             var optChar = (char)GetNextOpt(out var optArg);
-            Assert.AreEqual(optChar, 'h');
+            Assert.AreEqual('h', optChar);
             Assert.IsNull(optArg);
 
             optChar = (char)GetNextOpt(out optArg);
-            Assert.AreEqual(optChar, 'v');
+            Assert.AreEqual('v', optChar);
             Assert.IsNull(optArg);
 
             optChar = (char)GetNextOpt(out optArg);
-            Assert.AreEqual(optChar, 'c');
-            Assert.AreEqual(optArg, "test");
+            Assert.AreEqual('c', optChar);
+            Assert.AreEqual("test", optArg);
         }
 
         [TestMethod]
@@ -212,14 +212,14 @@
             AppArgs = new[] { "-ctest.json", "-Ltrace" };
 
             var optChar = (char)GetNextOpt(out var optArg);
-            Assert.AreEqual(optChar, 'c');
+            Assert.AreEqual('c', optChar);
             Assert.IsNotNull(optArg);
-            Assert.AreEqual(optArg, "test.json");
+            Assert.AreEqual("test.json", optArg);
 
             optChar = (char)GetNextOpt(out optArg);
-            Assert.AreEqual(optChar, 'L');
+            Assert.AreEqual('L', optChar);
             Assert.IsNotNull(optArg);
-            Assert.AreEqual(optArg, "trace");
+            Assert.AreEqual("trace", optArg);
         }
 
     }

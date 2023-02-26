@@ -272,11 +272,15 @@
 			var optChar = (char)GetNextOpt(out var optArg);
 			Assert.AreEqual('t', optChar);
 			Assert.IsNull(optArg);
-			GetNextOpt(out var _); // Something expressing the existence of filename.txt should happen here.
+			optChar = (char)GetNextOpt(out optArg);
+            Assert.AreEqual('!', optChar);
+            Assert.IsNotNull(optArg);
+            Assert.AreEqual("filename.txt", optArg);
 		}
 
 		[TestMethod]
-		public void TestFilenameBeforeOptionGnuParsing() {
+        [ExpectedException(typeof(ParseException))]
+		public void TestFilenameBeforeOptionGnuParsing_ExpectException() {
 			ShortOpts = "t";
 			Options = Array.Empty<Option>();
 			AppArgs = new[] { "filename.txt", "-t" };

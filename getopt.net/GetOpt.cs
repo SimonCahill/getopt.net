@@ -27,7 +27,7 @@ namespace getopt.net {
         /// <summary>
         /// Gets or sets a value indicating whether or not "--" stops parsing.
         /// </summary>
-        public bool DoubleDashStopsParsing { get; set; } = false;
+        public bool DoubleDashStopsParsing { get; set; } = true;
 
         /// <summary>
         /// Gets or sets the arguments to parse.

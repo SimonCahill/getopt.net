@@ -8,6 +8,38 @@ namespace getopt.net {
 	public struct Option {
 
 		/// <summary>
+		/// Constructs a new, empty instance of this struct.
+		/// </summary>
+		public Option() { }
+
+		/// <summary>
+		/// Constructs a new instance of this struct.
+		/// </summary>
+		/// <param name="name">The name of the argument.</param>
+		/// <param name="argType">The argument type.</param>
+		/// <param name="flag">The flag.</param>
+		/// <param name="value">The value of the option.</param>
+		public Option(string name, ArgumentType argType, IntPtr flag, char value) {
+			Name = name;
+			ArgumentType = argType;
+			Flag = flag;
+			Value = value;
+		}
+
+		/// <summary>
+		/// Constructs a new instance of this struct.
+		/// </summary>
+		/// <param name="name">The name of the argument.</param>
+		/// <param name="argType">The argument type.</param>
+		/// <param name="value">The value of the option.</param>
+		public Option(string name, ArgumentType argType, char value) {
+			Name = name;
+			ArgumentType = argType;
+			Flag = IntPtr.Zero;
+			Value = value;
+		}
+
+		/// <summary>
 		/// The name of the (long) option
 		/// </summary>
 		/// <remarks >

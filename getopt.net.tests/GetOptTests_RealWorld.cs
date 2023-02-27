@@ -320,5 +320,137 @@ namespace getopt.net.tests {
             optChar = (char)opt.GetNextOpt(out optArg);
         }
 
+        [TestMethod]
+        public void TestDoubleDashStopsParsing_True() {
+            var opt = new GetOpt {
+                AppArgs = new[] { "-hcv", "--", "--test", "-xzf" },
+                DoubleDashStopsParsing = true, // this is true by default
+                Options = new Option[] {
+                    new Option("help", ArgumentType.None, 'h'),
+                    new Option("config", ArgumentType.Optional, 'c'),
+                    new Option("verbose", ArgumentType.None, 'v'),
+                    new Option("test", ArgumentType.None, 't'),
+                    new Option("extract", ArgumentType.None, 'x'),
+                    new Option("zip", ArgumentType.None, 'z'),
+                    new Option("find", ArgumentType.None, 'f')
+                }
+            };
+
+            var optChar = (char)opt.GetNextOpt(out var optArg);
+            Assert.AreEqual('h', optChar);
+            Assert.IsNull(optArg);
+
+            optChar = (char)opt.GetNextOpt(out optArg);
+            Assert.AreEqual('c', optChar);
+            Assert.IsNull(optArg);
+
+            optChar = (char)opt.GetNextOpt(out optArg);
+            Assert.AreEqual('v', optChar);
+            Assert.IsNull(optArg);
+
+            // At this point, "--" should be encountered.
+            // This is ignored and the next option is returned via optArg.
+            // optChar should == 1
+
+            optChar = (char)opt.GetNextOpt(out optArg);
+            Assert.AreEqual(GetOpt.NonOptChar, optChar);
+            Assert.IsNotNull(optArg);
+            Assert.AreEqual("--test", optArg);
+
+            optChar = (char)opt.GetNextOpt(out optArg);
+            Assert.AreEqual(GetOpt.NonOptChar, optChar);
+            Assert.IsNotNull(optArg);
+            Assert.AreEqual("-xzf", optArg);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ParseException))]
+        public void TestDoubleDashStopsParsing_and_IgnoreInvalidOptions_False() {
+            var opt = new GetOpt {
+                AppArgs = new[] { "-hcv", "--", "--test", "-xzf" },
+                DoubleDashStopsParsing = false, // this is true by default
+                IgnoreInvalidOptions = false, // this is default true
+                Options = new Option[] {
+                    new Option("help", ArgumentType.None, 'h'),
+                    new Option("config", ArgumentType.Optional, 'c'),
+                    new Option("verbose", ArgumentType.None, 'v'),
+                    new Option("test", ArgumentType.None, 't'),
+                    new Option("extract", ArgumentType.None, 'x'),
+                    new Option("zip", ArgumentType.None, 'z'),
+                    new Option("find", ArgumentType.None, 'f')
+                }
+            };
+
+            var optChar = (char)opt.GetNextOpt(out var optArg);
+            Assert.AreEqual('h', optChar);
+            Assert.IsNull(optArg);
+
+            optChar = (char)opt.GetNextOpt(out optArg);
+            Assert.AreEqual('c', optChar);
+            Assert.IsNull(optArg);
+
+            optChar = (char)opt.GetNextOpt(out optArg);
+            Assert.AreEqual('v', optChar);
+            Assert.IsNull(optArg);
+
+            // At this point, "--" should be encountered.
+            // This is will throw an exception if "IgnoreInvalidOptions" is false
+            optChar = (char)opt.GetNextOpt(out optArg);
+        }
+
+        [TestMethod]
+        public void TestDoubleDashStopsParsing_False() {
+            var opt = new GetOpt {
+                AppArgs = new[] { "-hcv", "--", "--test", "-xzf" },
+                DoubleDashStopsParsing = false, // this is true by default
+                Options = new Option[] {
+                    new Option("help", ArgumentType.None, 'h'),
+                    new Option("config", ArgumentType.Optional, 'c'),
+                    new Option("verbose", ArgumentType.None, 'v'),
+                    new Option("test", ArgumentType.None, 't'),
+                    new Option("extract", ArgumentType.None, 'x'),
+                    new Option("zip", ArgumentType.None, 'z'),
+                    new Option("find", ArgumentType.None, 'f')
+                }
+            };
+
+            var optChar = (char)opt.GetNextOpt(out var optArg);
+            Assert.AreEqual('h', optChar);
+            Assert.IsNull(optArg);
+
+            optChar = (char)opt.GetNextOpt(out optArg);
+            Assert.AreEqual('c', optChar);
+            Assert.IsNull(optArg);
+
+            optChar = (char)opt.GetNextOpt(out optArg);
+            Assert.AreEqual('v', optChar);
+            Assert.IsNull(optArg);
+
+            // At this point, "--" should be encountered.
+            // This is an invalid option and GetNextOpt should
+            // return '?'
+
+            optChar = (char)opt.GetNextOpt(out optArg);
+            Assert.AreEqual(GetOpt.InvalidOptChar, optChar);
+            Assert.IsNotNull(optArg);
+            Assert.AreEqual("--", optArg);
+
+            optChar = (char)opt.GetNextOpt(out optArg);
+            Assert.AreEqual('t', optChar);
+            Assert.IsNull(optArg);
+
+            optChar = (char)opt.GetNextOpt(out optArg);
+            Assert.AreEqual('x', optChar);
+            Assert.IsNull(optArg);
+
+            optChar = (char)opt.GetNextOpt(out optArg);
+            Assert.AreEqual('z', optChar);
+            Assert.IsNull(optArg);
+
+            optChar = (char)opt.GetNextOpt(out optArg);
+            Assert.AreEqual('f', optChar);
+            Assert.IsNull(optArg);
+        }
+
     }
 }

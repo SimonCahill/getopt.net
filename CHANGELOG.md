@@ -1,5 +1,13 @@
 # getop.net changelog
 
+# v0.3.1
+This is a minor release related to #11.
+
+# Changes:
+
+ - DoubleDashStopsParsing is now default true.
+ - Bumped up version to 0.3.1
+
 # v0.3.0
 
  - Added check to determine whether 0x01 must be returned, depending on whether or not `ShortOpts[0] == '-'`.

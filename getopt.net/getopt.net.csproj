@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>net46;net6.0;net7.0</TargetFrameworks>
@@ -20,7 +20,16 @@ GitHub: https://github.com/SimonCahill/getopt.net</Description>
     <RepositoryUrl>https://github.com/SimonCahill/getopt.net</RepositoryUrl>
     <PackageProjectUrl>https://docs.simonc.eu/docs/getopt.net</PackageProjectUrl>
     <RepositoryType>Git</RepositoryType>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseFile>../LICENSE</PackageLicenseFile>
+    <Version>0.3.0</Version>
+    <PackageTags>getopt; getopt.net; argument-parsing; parser; arguments; options; getopt_long</PackageTags>
+    <PackageReleaseNotes>This is a minor release related to #11.
+
+# Changes:
+ - DoubleDashStopsParsing is now default true.
+ - Bumped up version to 0.3.1</PackageReleaseNotes>
 
   </PropertyGroup>
 
@@ -34,6 +43,16 @@ GitHub: https://github.com/SimonCahill/getopt.net</Description>
     <WarningLevel>4</WarningLevel>
     <SignAssembly>true</SignAssembly>
   </PropertyGroup>
+  <ItemGroup>
+    <None Include="..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
   <ItemGroup>
     <Using Include="System" />

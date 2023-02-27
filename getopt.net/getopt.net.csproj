@@ -20,7 +20,7 @@ GitHub: https://github.com/SimonCahill/getopt.net</Description>
     <RepositoryUrl>https://github.com/SimonCahill/getopt.net</RepositoryUrl>
     <PackageProjectUrl>https://docs.simonc.eu/docs/getopt.net</PackageProjectUrl>
     <RepositoryType>Git</RepositoryType>
-    <PackageLicenseFile>../LICENSE.md</PackageLicenseFile>
+    <PackageLicenseFile>../LICENSE</PackageLicenseFile>
 
   </PropertyGroup>
 

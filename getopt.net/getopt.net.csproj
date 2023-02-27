@@ -23,7 +23,7 @@ GitHub: https://github.com/SimonCahill/getopt.net</Description>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseFile>../LICENSE</PackageLicenseFile>
-    <Version>0.3.0</Version>
+    <Version>0.3.1</Version>
     <PackageTags>getopt; getopt.net; argument-parsing; parser; arguments; options; getopt_long</PackageTags>
     <PackageReleaseNotes>This is a minor release related to #11.
 

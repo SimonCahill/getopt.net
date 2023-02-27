@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        dotnet-version: [ '6.0', '7.0' ]
+        dotnet-version: [ '4.6', '6.0', '7.0' ]
     steps:
       - uses: actions/checkout@v3
       - name: Setup .NET Core SDK ${{ matrix.dotnet-version }}
@@ -19,5 +19,5 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release --no-restore
       - name: Test
-        run: dotnet text --no-restore --verbosity normal
+        run: dotnet test --no-restore --verbosity normal
 

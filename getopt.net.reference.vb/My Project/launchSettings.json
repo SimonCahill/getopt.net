@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "getopt.net.reference.vb": {
+      "commandName": "Project",
+      "commandLineArgs": "-h --help "
+    }
+  }
+}

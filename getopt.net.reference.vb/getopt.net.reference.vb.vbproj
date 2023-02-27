@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>getopt.net.reference.vb</RootNamespace>
+    <TargetFramework>net7.0</TargetFramework>
+    <AssemblyName>myapp</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\getopt.net\getopt.net.csproj" />
+  </ItemGroup>
+
+</Project>

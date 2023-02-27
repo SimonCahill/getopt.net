@@ -4,6 +4,8 @@ This repository contains the code for my port of the GNU getopt functionality fo
 
 getopt.net is written entirely in C# and is a "cleanroom port"; although not necessary it made the project that much more fun :)
 
+![Test Workflow](https://github.com/SimonCahill/getopt.net/actions/workflows/run-tests.yml/badge.svg)
+
 # Installation
 
 There are several methods of installing and using getopt.net in your project.

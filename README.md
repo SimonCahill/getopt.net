@@ -35,9 +35,9 @@ getopt.ShortOpts = "abC:dE:f:GhIjkLmnop:q:r:";
 ### Customisation is available with long opts:
 ```csharp
 getopt.Options = new[] {
-    new Option { Name = "help", ArgumentType = ArgumentType.None, Flag = IntPtr.Zero, Value = 'h' },
-    new Option("config", ArgumentType.Required, IntPtr.Zero, 'c'),
-    new Option("version", ArgumentType.Optional, IntPtr.Zero, 'v')
+    new Option { Name = "help", ArgumentType = ArgumentType.None, Flag = Value = 'h' },
+    new Option("config", ArgumentType.Required, 'c'),
+    new Option("version", ArgumentType.Optional, 'v')
 };
 ```
 
@@ -59,11 +59,6 @@ The exceptions *do* contain more info, however.
 At the time of writing this, I have not figured out all the details of using the library!
 Anything written here, until noted otherwise, is **subject to change!**
 
-# Things that __don't__ work
-
-I forgot to implement the whole "provide a flag pointer" functionality.
-I'll do that later; it needs unsafe code anyway, so it'll have to be in its own little method.
-
 ## Basic usage
 
 ```csharp
@@ -74,10 +69,10 @@ static void Main(string[] args) {
 
     var getopt = new Getopt {
         Options = new[] {
-            new Option("help",    ArgumentType.None, IntPtr.Zero, 'h'),
-            new Option("version", ArgumentType.None, IntPtr.Zero, 'v'),
+            new Option("help",    ArgumentType.None, 'h'),
+            new Option("version", ArgumentType.None, 'v'),
             // or, alternatively
-            new Option { Name = "config", ArgumentType.Required, IntPtr.Zero, 'c' }
+            new Option { Name = "config", ArgumentType.Required, 'c' }
         },
         ShortOpts = "hvc:",
         DoubleDashStopsParsing = true, // optional

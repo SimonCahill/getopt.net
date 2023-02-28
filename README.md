@@ -56,10 +56,9 @@ The exceptions *do* contain more info, however.
 
 # Usage:
 
-At the time of writing this, I have not figured out all the details of using the library!
-Anything written here, until noted otherwise, is **subject to change!**
+For a more detailled description of using getopt.net, please consult the Wiki.
 
-## Basic usage
+## Basic usage in C#
 
 ```csharp
 
@@ -92,6 +91,8 @@ static void Main(string[] args) {
     }
 }
 ```
+
+## Basic usage in VB.Net
 
 ```vbnet
 Imports getopt.net

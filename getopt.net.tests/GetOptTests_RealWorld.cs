@@ -210,7 +210,7 @@ namespace getopt.net.tests {
             opt.ShortOpts = string.Empty;
             opt.Options = Array.Empty<Option>();
             opt.AppArgs = new[] { "filename.txt" };
-            string optArg;
+            string? optArg;
             Assert.AreEqual(GetOpt.InvalidOptChar, (char)opt.GetNextOpt(out optArg));
         }
 

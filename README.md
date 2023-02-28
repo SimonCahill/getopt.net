@@ -75,7 +75,6 @@ static void Main(string[] args) {
             new Option { Name = "config", ArgumentType.Required, 'c' }
         },
         ShortOpts = "hvc:",
-        DoubleDashStopsParsing = true, // optional
         AppArgs = args, // REQUIRED
         OnlyShortOpts = false,
         // other options here
@@ -92,7 +91,49 @@ static void Main(string[] args) {
         }
     }
 }
+```
 
+```vbnet
+Imports getopt.net
+
+module Program
+
+    Dim _progOptions() As [Option] = {
+        New [Option]("help", ArgumentType.None, "h"c),
+        New [Option]("version", ArgumentType.None, "v"c),
+        New [Option]("file", ArgumentType.Required, "f"c)
+    }
+
+    Dim _progShortOptions As String = "hvf:"
+
+    sub Main(args as string())
+        Dim getopt = New GetOpt With {
+            .AppArgs = args,
+            .Options = _progOptions,
+            .ShortOpts = _progShortOptions
+        }
+
+        Dim optChar = 0
+        Dim optArg As String = Nothing
+        Dim fileToRead As String = Nothing
+
+        While optChar <> -1
+            optChar = getopt.GetNextOpt(optArg)
+
+            Select Case optChar
+                Case Convert.ToInt32("h"c)
+                    ' do something
+                    Return
+                Case Convert.ToInt32("v"c)
+                    ' do something else
+                    Return
+                Case Convert.ToInt32("f"c)
+                    ' do something with optArg
+            End Select
+        End While
+    end sub
+
+end module
 ```
 
 # Bugs and errors

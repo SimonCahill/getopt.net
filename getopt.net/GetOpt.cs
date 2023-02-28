@@ -6,12 +6,31 @@ namespace getopt.net {
 
     /// <summary>
     /// GetOpt-like class for handling getopt-like command-line arguments in .net.
+    /// 
+    /// This class contains all the properties and logic required for parsing getopt-like command-line arguments.
+    /// 
+    /// A detailled description of the usage of this class can be found in the <see href="https://github.com/SimonCahill/getopt.net/wiki" />.
     /// </summary>
     public partial class GetOpt {
 
+        /// <summary>
+        /// The character that is returned when an option is missing a required argument.
+        /// </summary>
         public const char MissingArgChar = '?';
+
+        /// <summary>
+        /// The character that is returned when an invalid option is returned.
+        /// </summary>
         public const char InvalidOptChar = '!';
+
+        /// <summary>
+        /// The character that is returned when a non-option value is encountered and it is not the argument to an option.
+        /// </summary>
         public const char NonOptChar     = (char)1;
+
+        /// <summary>
+        /// This is the string getopt.net looks for when <see cref="DoubleDashStopsParsing" /> is enabled.
+        /// </summary>
         public const string DoubleDash   = "--";
 
         /// <summary>
@@ -81,6 +100,10 @@ namespace getopt.net {
         /// </summary>
         public int CurrentIndex => m_currentIndex;
 
+        /// <summary>
+        /// Default constructor; it is recommended to use this constructor
+        /// and to use brace-initialiser-lists to instantiate/configure each instance of this object.
+        /// </summary>
         public GetOpt() { }
 
         /// <summary>
@@ -95,7 +118,14 @@ namespace getopt.net {
             Options = options;
         }
 
+        /// <summary>
+        /// The current index while traversing <see cref="AppArgs" />
+        /// </summary>
         protected int m_currentIndex = 0;
+
+        /// <summary>
+        /// The current position in a multi-option string such as "-xvzRf" when parsing short options.
+        /// </summary>
         protected int m_optPosition = 1; // this applies to short opts only, where [0] == '-'
 
         /// <summary>

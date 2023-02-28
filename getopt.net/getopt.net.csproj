@@ -14,8 +14,7 @@ GitHub: https://github.com/SimonCahill/getopt.net</Description>
     <PackageId>getopt.net-bsd</PackageId>
     <PublisherName>Simon Cahill</PublisherName>
     <SupportUrl>https://docs.simonc.eu/docs/getopt.net</SupportUrl>
-    <ReleaseVersion>0.3.1</ReleaseVersion>
-    <Version>0.3.1</Version>
+    <ReleaseVersion>0.4.0</ReleaseVersion>
     <SynchReleaseVersion>true</SynchReleaseVersion>
     <RepositoryUrl>https://github.com/SimonCahill/getopt.net</RepositoryUrl>
     <PackageProjectUrl>https://docs.simonc.eu/docs/getopt.net</PackageProjectUrl>
@@ -23,13 +22,15 @@ GitHub: https://github.com/SimonCahill/getopt.net</Description>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
-    <Version>0.3.1</Version>
+    <Version>0.4.0</Version>
     <PackageTags>getopt; getopt.net; argument-parsing; parser; arguments; options; getopt_long</PackageTags>
-    <PackageReleaseNotes>This is a minor release related to #11.
+    <PackageReleaseNotes>
+This release introduces a potentially breaking change!
 
 # Changes:
- - DoubleDashStopsParsing is now default true.
- - Bumped up version to 0.3.1</PackageReleaseNotes>
+ - Removed support for Flag parameter in Options struct.
+ - Bumped up version to 0.4.0
+    </PackageReleaseNotes>
     <Title>getopt.net</Title>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
 

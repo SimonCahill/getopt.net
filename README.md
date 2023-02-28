@@ -35,9 +35,9 @@ getopt.ShortOpts = "abC:dE:f:GhIjkLmnop:q:r:";
 ### Customisation is available with long opts:
 ```csharp
 getopt.Options = new[] {
-    new Option { Name = "help", ArgumentType = ArgumentType.None, Flag = IntPtr.Zero, Value = 'h' },
-    new Option("config", ArgumentType.Required, IntPtr.Zero, 'c'),
-    new Option("version", ArgumentType.Optional, IntPtr.Zero, 'v')
+    new Option { Name = "help", ArgumentType = ArgumentType.None, Flag = Value = 'h' },
+    new Option("config", ArgumentType.Required, 'c'),
+    new Option("version", ArgumentType.Optional, 'v')
 };
 ```
 
@@ -56,15 +56,9 @@ The exceptions *do* contain more info, however.
 
 # Usage:
 
-At the time of writing this, I have not figured out all the details of using the library!
-Anything written here, until noted otherwise, is **subject to change!**
+For a more detailled description of using getopt.net, please consult the Wiki.
 
-# Things that __don't__ work
-
-I forgot to implement the whole "provide a flag pointer" functionality.
-I'll do that later; it needs unsafe code anyway, so it'll have to be in its own little method.
-
-## Basic usage
+## Basic usage in C#
 
 ```csharp
 
@@ -74,13 +68,12 @@ static void Main(string[] args) {
 
     var getopt = new Getopt {
         Options = new[] {
-            new Option("help",    ArgumentType.None, IntPtr.Zero, 'h'),
-            new Option("version", ArgumentType.None, IntPtr.Zero, 'v'),
+            new Option("help",    ArgumentType.None, 'h'),
+            new Option("version", ArgumentType.None, 'v'),
             // or, alternatively
-            new Option { Name = "config", ArgumentType.Required, IntPtr.Zero, 'c' }
+            new Option { Name = "config", ArgumentType.Required, 'c' }
         },
         ShortOpts = "hvc:",
-        DoubleDashStopsParsing = true, // optional
         AppArgs = args, // REQUIRED
         OnlyShortOpts = false,
         // other options here
@@ -97,7 +90,51 @@ static void Main(string[] args) {
         }
     }
 }
+```
 
+## Basic usage in VB.Net
+
+```vbnet
+Imports getopt.net
+
+module Program
+
+    Dim _progOptions() As [Option] = {
+        New [Option]("help", ArgumentType.None, "h"c),
+        New [Option]("version", ArgumentType.None, "v"c),
+        New [Option]("file", ArgumentType.Required, "f"c)
+    }
+
+    Dim _progShortOptions As String = "hvf:"
+
+    sub Main(args as string())
+        Dim getopt = New GetOpt With {
+            .AppArgs = args,
+            .Options = _progOptions,
+            .ShortOpts = _progShortOptions
+        }
+
+        Dim optChar = 0
+        Dim optArg As String = Nothing
+        Dim fileToRead As String = Nothing
+
+        While optChar <> -1
+            optChar = getopt.GetNextOpt(optArg)
+
+            Select Case optChar
+                Case Convert.ToInt32("h"c)
+                    ' do something
+                    Return
+                Case Convert.ToInt32("v"c)
+                    ' do something else
+                    Return
+                Case Convert.ToInt32("f"c)
+                    ' do something with optArg
+            End Select
+        End While
+    end sub
+
+end module
 ```
 
 # Bugs and errors

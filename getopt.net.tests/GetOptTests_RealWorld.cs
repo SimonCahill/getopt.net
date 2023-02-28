@@ -9,7 +9,7 @@ namespace getopt.net.tests {
         public void TestGetNextOptLong() {
             var opt = new GetOpt();
             opt.AppArgs = new[] { "--help" };
-            opt.Options = new[] { new Option { Name = "help", ArgumentType = ArgumentType.None, Flag = IntPtr.Zero, Value = 'h' } };
+            opt.Options = new[] { new Option { Name = "help", ArgumentType = ArgumentType.None, Value = 'h' } };
 
             string? optArg = "";
             char optChar = (char)opt.GetNextOpt(out optArg);
@@ -21,7 +21,7 @@ namespace getopt.net.tests {
         public void TestGetNextOptLongWithRequiredArg_SeperatedByEquals() {
             var opt = new GetOpt();
             opt.AppArgs = new[] { "--test=test" };
-            opt.Options = new[] { new Option { Name = "test", ArgumentType = ArgumentType.Required, Flag = IntPtr.Zero, Value = 't' } };
+            opt.Options = new[] { new Option { Name = "test", ArgumentType = ArgumentType.Required, Value = 't' } };
 
             string? optArg = "";
             char optChar = (char)opt.GetNextOpt(out optArg);
@@ -33,7 +33,7 @@ namespace getopt.net.tests {
         public void TestGetNextOptLongWithRequiredArgs_SeparatedBySpace() {
             var opt = new GetOpt();
             opt.AppArgs = new[] { "--test test" };
-            opt.Options = new[] { new Option { Name = "test", ArgumentType = ArgumentType.Required, Flag = IntPtr.Zero, Value = 't' } };
+            opt.Options = new[] { new Option { Name = "test", ArgumentType = ArgumentType.Required, Value = 't' } };
 
             string? optArg = "";
             char optChar = (char)opt.GetNextOpt(out optArg);
@@ -45,7 +45,7 @@ namespace getopt.net.tests {
         public void TestGetNextOptLongWithRequiredArgs_SeparatedByArg() {
             var opt = new GetOpt();
             opt.AppArgs = new[] { "--test", "test" };
-            opt.Options = new[] { new Option { Name = "test", ArgumentType = ArgumentType.Required, Flag = IntPtr.Zero, Value = 't' } };
+            opt.Options = new[] { new Option { Name = "test", ArgumentType = ArgumentType.Required, Value = 't' } };
 
             string? optArg = "";
             char optChar = (char)opt.GetNextOpt(out optArg);
@@ -58,10 +58,10 @@ namespace getopt.net.tests {
             var opt = new GetOpt();
             opt.AppArgs = new[] { "--test", "test", "--test2", "--test3=test3", "--test4 test4" };
             opt.Options = new[] {
-                new Option { Name = "test",     ArgumentType = ArgumentType.Required,   Flag = IntPtr.Zero, Value = 't' },
-                new Option { Name = "test2",    ArgumentType = ArgumentType.None,       Flag = IntPtr.Zero, Value = '1' },
-                new Option { Name = "test3",    ArgumentType = ArgumentType.Optional,   Flag = IntPtr.Zero, Value = '2' },
-                new Option { Name = "test4",    ArgumentType = ArgumentType.Required,   Flag = IntPtr.Zero, Value = '3' }
+                new Option { Name = "test",     ArgumentType = ArgumentType.Required,   Value = 't' },
+                new Option { Name = "test2",    ArgumentType = ArgumentType.None,       Value = '1' },
+                new Option { Name = "test3",    ArgumentType = ArgumentType.Optional,   Value = '2' },
+                new Option { Name = "test4",    ArgumentType = ArgumentType.Required,   Value = '3' }
             };
 
             char optChar = (char)opt.GetNextOpt(out string? optArg);
@@ -104,9 +104,9 @@ namespace getopt.net.tests {
         public void TestGetNextOptShort_WithFallbackToLongOpt() {
             var opt = new GetOpt();
             opt.Options = new[] {
-                new Option { Name = "help",     ArgumentType = ArgumentType.None,       Flag = IntPtr.Zero,     Value = 'h' },
-                new Option { Name = "config",   ArgumentType = ArgumentType.Required,   Flag = IntPtr.Zero,     Value = 'c' },
-                new Option { Name = "version",  ArgumentType = ArgumentType.None,       Flag = IntPtr.Zero,     Value = 'v' }
+                new Option { Name = "help",     ArgumentType = ArgumentType.None,           Value = 'h' },
+                new Option { Name = "config",   ArgumentType = ArgumentType.Required,       Value = 'c' },
+                new Option { Name = "version",  ArgumentType = ArgumentType.None,           Value = 'v' }
             };
             opt.ShortOpts = "hv"; // intentionally leaving out config to test fallbar to long opts
             opt.AppArgs = new[] { "-hv", "-ctest" };
@@ -128,9 +128,9 @@ namespace getopt.net.tests {
         public void TestGetNextOptShort_AllOptsInSameString() {
             var opt = new GetOpt();
             opt.Options = new[] {
-                new Option { Name = "help",     ArgumentType = ArgumentType.None,       Flag = IntPtr.Zero,     Value = 'h' },
-                new Option { Name = "config",   ArgumentType = ArgumentType.Required,   Flag = IntPtr.Zero,     Value = 'c' },
-                new Option { Name = "version",  ArgumentType = ArgumentType.None,       Flag = IntPtr.Zero,     Value = 'v' }
+                new Option { Name = "help",     ArgumentType = ArgumentType.None,           Value = 'h' },
+                new Option { Name = "config",   ArgumentType = ArgumentType.Required,       Value = 'c' },
+                new Option { Name = "version",  ArgumentType = ArgumentType.None,           Value = 'v' }
             };
             opt.ShortOpts = "hvc:"; // intentionally leaving out config to test fallbar to long opts
             opt.AppArgs = new[] { "-hvctest" };
@@ -169,12 +169,12 @@ namespace getopt.net.tests {
         public void TestGetNextOptShort_MultipleOptsAndArgs() {
             var opt = new GetOpt();
             opt.Options = new[] {
-                new Option { Name = "config",           ArgumentType = ArgumentType.Required,   Flag = IntPtr.Zero, Value = 'c' },
-                new Option { Name = "log-lvl",          ArgumentType = ArgumentType.Required,   Flag = IntPtr.Zero, Value = 'L' },
-                new Option { Name = "help",             ArgumentType = ArgumentType.None,       Flag = IntPtr.Zero, Value = 'h' },
-                new Option { Name = "version",          ArgumentType = ArgumentType.None,       Flag = IntPtr.Zero, Value = 'v' },
-                new Option { Name = "check-updates",    ArgumentType = ArgumentType.None,       Flag = IntPtr.Zero, Value = 'U' },
-                new Option { Name = "reset-cfg",        ArgumentType = ArgumentType.Optional,   Flag = IntPtr.Zero, Value = '%' }
+                new Option { Name = "config",           ArgumentType = ArgumentType.Required,   Value = 'c' },
+                new Option { Name = "log-lvl",          ArgumentType = ArgumentType.Required,   Value = 'L' },
+                new Option { Name = "help",             ArgumentType = ArgumentType.None,       Value = 'h' },
+                new Option { Name = "version",          ArgumentType = ArgumentType.None,       Value = 'v' },
+                new Option { Name = "check-updates",    ArgumentType = ArgumentType.None,       Value = 'U' },
+                new Option { Name = "reset-cfg",        ArgumentType = ArgumentType.Optional,   Value = '%' }
                 // add more as required
             };
             opt.ShortOpts = "c:L:hv%U";

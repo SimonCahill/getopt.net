@@ -346,7 +346,7 @@ namespace getopt.net {
         /// <returns><code >true</code> if the short opt requires an argument.</returns>
         /// <exception cref="ParseException">If ignoring errors is disabled (default) and an error occurs during parsing.</exception>
         protected bool ShortOptRequiresArg(ref char shortOpt) {
-            if (!string.IsNullOrEmpty(ShortOpts)) {
+            if (!string.IsNullOrEmpty(ShortOpts) && ShortOpts is not null) {
                 var posInStr = ShortOpts.IndexOf(shortOpt);
                 if (posInStr == -1) { goto CheckLongOpt; }
                 else if (posInStr + 1 >= ShortOpts.Length) { return false; }

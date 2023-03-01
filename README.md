@@ -1,4 +1,4 @@
-# getopt.net - A GNU getopt port to .net
+# getopt.net - A GNU and POSIX getopt port to .net
 
 This repository contains the code for my port of the GNU getopt functionality found on most Unix-like systems.
 

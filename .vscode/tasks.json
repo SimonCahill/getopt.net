@@ -2,14 +2,41 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "build",
+            "group": "build",
+            "label": "Build Debug",
             "command": "dotnet",
+            "type": "process",
+            "options": { "cwd": "${workspaceFolder}" },
+            "args": [
+                "build",
+                "-c", "Debug"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "group": "build",
+            "label": "Build Release",
+            "command": "dotnet",
+            "options": { "cwd": "${workspaceFolder}" },
             "type": "process",
             "args": [
                 "build",
                 "${workspaceFolder}/getopt.net.tests/getopt.net.tests.csproj",
                 "/property:GenerateFullPaths=true",
-                "/consoleloggerparameters:NoSummary"
+                "/consoleloggerparameters:NoSummary",
+                "-c", "Release"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "group": "build",
+            "label": "Pack",
+            "command": "dotnet",
+            "options": { "cwd": "${workspaceFolder}" },
+            "type": "process",
+            "args": [
+                "pack",
+                "-c", "Release"
             ],
             "problemMatcher": "$msCompile"
         },
@@ -36,6 +63,15 @@
                 "${workspaceFolder}/getopt.net.tests/getopt.net.tests.csproj"
             ],
             "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "Generate Doxygen documentation",
+            "group": "build",
+            "command": "doxygen",
+            "options": { "cwd": "${workspaceFolder}" },
+            "args": [
+                "Doxyfile"
+            ]
         }
     ]
 }

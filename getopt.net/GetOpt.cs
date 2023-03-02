@@ -16,34 +16,44 @@ namespace getopt.net {
         /// <summary>
         /// The character that is returned when an option is missing a required argument.
         /// </summary>
-        public const char MissingArgChar = '?';
+        public const char MissingArgChar    = '?';
 
         /// <summary>
         /// The character that is returned when an invalid option is returned.
         /// </summary>
-        public const char InvalidOptChar = '!';
+        public const char InvalidOptChar    = '!';
 
         /// <summary>
         /// The character that is returned when a non-option value is encountered and it is not the argument to an option.
         /// </summary>
-        public const char NonOptChar     = (char)1;
+        public const char NonOptChar        = (char)1;
 
         /// <summary>
         /// This is the string getopt.net looks for when <see cref="DoubleDashStopsParsing" /> is enabled.
         /// </summary>
-        public const string DoubleDash   = "--";
+        public const string DoubleDash      = "--";
 
         /// <summary>
         /// A single dash character.
         /// This is the character that is searched for, when parsing POSIX-/GNU-like options.
         /// </summary>
-        public const char SingleDash     = '-';
+        public const char SingleDash        = '-';
 
         /// <summary>
         /// A single slash.
         /// This is the char that is searched for when parsing arguments with the Windows convention.
         /// </summary>
-        public const char SingleSlash    = '/';
+        public const char SingleSlash       = '/';
+
+        /// <summary>
+        /// The argument separator used by Windows.
+        /// </summary>
+        public const char WinArgSeparator   = ':';
+
+        /// <summary>
+        /// The argument separator used by POSIX / GNU getopt.
+        /// </summary>
+        public const char GnuArgSeparator   = '=';
 
         /// <summary>
         /// An optional list of long options to go with the short options.
@@ -404,10 +414,19 @@ namespace getopt.net {
         /// <param name="argVal">Out var; the value of the argument</param>
         /// <returns><code >true</code> if the option contains its argument. <code >false</code> otherwise.</returns>
         protected bool HasArgumentInOption(out string optName, out string? argVal) {
-            var curArg = AppArgs[m_currentIndex];
+            var curArg = AppArgs[CurrentIndex];
             var splitString = Array.Empty<string>();
 
-            splitString = ArgumentSplitter().Split(AppArgs[m_currentIndex]);
+            if (AllowWindowsConventions) {
+                // if we're allowing Windows conventions, we have to replace
+                // the first occurrence of ':' in the arg string with '='
+                var indexOfSeparator = curArg.IndexOf(WinArgSeparator);
+                if (indexOfSeparator != -1) {
+                    curArg = $"{ curArg.Substring(0, indexOfSeparator) }{ GnuArgSeparator }{ curArg.Substring(indexOfSeparator + 1) }";
+                }
+            }
+
+            splitString = ArgumentSplitter().Split(curArg);
 
             if (splitString.Length == 1) {
                 optName = StripDashes(true); // we can set this to true, because this method will only ever be called for long opts
@@ -435,17 +454,17 @@ namespace getopt.net {
         protected string StripDashes(bool isLongOpt) {
             var curArg = AppArgs[m_currentIndex];
 
-            if (AllowWindowsConventions && curArg.StartsWith(SingleSlash)) {
+            if (AllowWindowsConventions && curArg.StartsWith(SingleSlash.ToString())) {
                 return curArg.Substring(1);
             }
 
-            if (!curArg.StartsWith(DoubleDash) && !curArg.StartsWith(SingleDash)) {
+            if (!curArg.StartsWith(DoubleDash) && !curArg.StartsWith(SingleDash.ToString())) {
                 return curArg;
             }
 
             if (isLongOpt && curArg.StartsWith(DoubleDash)) {
                 return curArg.Substring(2);
-            } else if (curArg.StartsWith(SingleDash)) {
+            } else if (curArg.StartsWith(SingleDash.ToString())) {
                 return curArg.Substring(1);
             }
 

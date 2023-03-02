@@ -1,9 +1,19 @@
 # getop.net changelog
 
+# v0.5.0
+Added support for Windows-style command-line options!
+
+# v0.4.0
+This release introduces a potentially breaking change!
+
+## Changes:
+ - Removed support for `Flag` property in `Option`
+
+
 # v0.3.1
 This is a minor release related to #11.
 
-# Changes:
+## Changes:
 
  - DoubleDashStopsParsing is now default true.
  - Bumped up version to 0.3.1

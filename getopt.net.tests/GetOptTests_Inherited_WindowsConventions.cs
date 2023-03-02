@@ -50,9 +50,92 @@ namespace getopt.net.tests {
 
             AppArgs = new[] { "/long-option" };
             Assert.AreEqual("long-option", StripDashes(true));
-            
+
             AppArgs = new[] { "/shortopt" };
             Assert.AreEqual("shortopt", StripDashes(false));
+        }
+
+        [TestMethod]
+        public void TestHasArgumentInOption_NoArgs() {
+            m_currentIndex = 0; // ensure we always start at first index
+            AppArgs = new[] {
+                // no arguments here
+                "/noarg", "-c", "--noarg"
+            };
+
+            Assert.IsFalse(HasArgumentInOption(out var optName, out var optVal));
+            Assert.IsNotNull(optName);
+            Assert.AreEqual("noarg", optName);
+            Assert.IsNull(optVal);
+
+            m_currentIndex++; // manually increment counter
+
+            Assert.IsFalse(HasArgumentInOption(out optName, out optVal));
+            Assert.IsNotNull(optName);
+            Assert.AreEqual("c", optName);
+            Assert.IsNull(optVal);
+
+            m_currentIndex++;
+
+            Assert.IsFalse(HasArgumentInOption(out optName, out optVal));
+            Assert.IsNotNull(optName);
+            Assert.AreEqual("noarg", optName);
+            Assert.IsNull(optVal);
+
+        }
+        
+        [TestMethod]
+        public void TestHasArgumentInOption_WinStyleArgs() {
+            m_currentIndex = 0;
+            AppArgs = new[] {
+                // Windows style
+                "/has:arg", "/has arg", "/has=arg",
+            };
+
+            Assert.IsTrue(HasArgumentInOption(out var optName, out var optVal));
+            Assert.IsNotNull(optName);
+            Assert.AreEqual("/has", optName);
+            Assert.IsNotNull(optVal);
+            Assert.AreEqual("arg", optVal);
+
+            m_currentIndex++; // manually increment counter
+
+            Assert.IsTrue(HasArgumentInOption(out optName, out optVal));
+            Assert.IsNotNull(optName);
+            Assert.AreEqual("/has", optName);
+            Assert.IsNotNull(optVal);
+            Assert.AreEqual("arg", optVal);
+
+            m_currentIndex++;
+
+            Assert.IsTrue(HasArgumentInOption(out optName, out optVal));
+            Assert.IsNotNull(optName);
+            Assert.AreEqual("/has", optName);
+            Assert.IsNotNull(optVal);
+            Assert.AreEqual("arg", optVal);
+        }
+
+        [TestMethod]
+        public void TestHasArgumentInOption_GnuPosixStyleArgs() {
+            m_currentIndex = 0;
+            AppArgs = new[] {
+                // GNU/POSIX style
+                "--has arg", "--has=arg"
+            };
+
+            Assert.IsTrue(HasArgumentInOption(out var optName, out var optVal));
+            Assert.IsNotNull(optName);
+            Assert.AreEqual("--has", optName);
+            Assert.IsNotNull(optVal);
+            Assert.AreEqual("arg", optVal);
+
+            m_currentIndex++; // manually increment counter
+
+            Assert.IsTrue(HasArgumentInOption(out optName, out optVal));
+            Assert.IsNotNull(optName);
+            Assert.AreEqual("--has", optName);
+            Assert.IsNotNull(optVal);
+            Assert.AreEqual("arg", optVal);
         }
 
     }

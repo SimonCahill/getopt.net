@@ -62,6 +62,31 @@
             Assert.AreEqual("shortopt", StripDashes(false));
         }
 
+
+
+        [TestMethod]
+        public void TestHasArgumentInOption_HasArgs() {
+            m_currentIndex = 0;
+            AppArgs = new[] {
+                // GNU/POSIX style
+                "--has arg", "--has=arg"
+            };
+
+            Assert.IsTrue(HasArgumentInOption(out var optName, out var optVal));
+            Assert.IsNotNull(optName);
+            Assert.AreEqual("--has", optName);
+            Assert.IsNotNull(optVal);
+            Assert.AreEqual("arg", optVal);
+
+            m_currentIndex++; // manually increment counter
+
+            Assert.IsTrue(HasArgumentInOption(out optName, out optVal));
+            Assert.IsNotNull(optName);
+            Assert.AreEqual("--has", optName);
+            Assert.IsNotNull(optVal);
+            Assert.AreEqual("arg", optVal);
+        }
+
     }
 
 }

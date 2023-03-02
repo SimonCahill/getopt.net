@@ -18,13 +18,13 @@
             var invalidArg2 = "c:";
             var invalidArg3 = "--hvc:";
 
-            Assert.IsTrue(IsShortOption(ref validArg1));
-            Assert.IsTrue(IsShortOption(ref validArg2));
-            Assert.IsTrue(IsShortOption(ref validArg3));
+            Assert.IsTrue(IsShortOption(validArg1));
+            Assert.IsTrue(IsShortOption(validArg2));
+            Assert.IsTrue(IsShortOption(validArg3));
 
-            Assert.IsFalse(IsShortOption(ref invalidArg1));
-            Assert.IsFalse(IsShortOption(ref invalidArg2));
-            Assert.IsFalse(IsShortOption(ref invalidArg3));
+            Assert.IsFalse(IsShortOption(invalidArg1));
+            Assert.IsFalse(IsShortOption(invalidArg2));
+            Assert.IsFalse(IsShortOption(invalidArg3));
         }
 
         [TestMethod]
@@ -38,14 +38,14 @@
             var invalidArg3 = "config=test";
             var invalidArg4 = "config --test";
 
-            Assert.IsTrue(IsLongOption(ref validArg1));
-            Assert.IsTrue(IsLongOption(ref validArg2));
-            Assert.IsTrue(IsLongOption(ref validArg3));
+            Assert.IsTrue(IsLongOption(validArg1));
+            Assert.IsTrue(IsLongOption(validArg2));
+            Assert.IsTrue(IsLongOption(validArg3));
 
-            Assert.IsFalse(IsLongOption(ref invalidArg1));
-            Assert.IsFalse(IsLongOption(ref invalidArg2));
-            Assert.IsFalse(IsLongOption(ref invalidArg3));
-            Assert.IsFalse(IsLongOption(ref invalidArg4));
+            Assert.IsFalse(IsLongOption(invalidArg1));
+            Assert.IsFalse(IsLongOption(invalidArg2));
+            Assert.IsFalse(IsLongOption(invalidArg3));
+            Assert.IsFalse(IsLongOption(invalidArg4));
         }
 
         [TestMethod]
@@ -58,6 +58,8 @@
 
             AppArgs = new[] { "--double-dash" };
             Assert.AreEqual("double-dash", StripDashes(true));
+            AppArgs = new[] { "-shortopt" };
+            Assert.AreEqual("shortopt", StripDashes(false));
         }
 
     }

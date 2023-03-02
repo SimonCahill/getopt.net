@@ -494,7 +494,7 @@ namespace getopt.net {
                 arg.Length > 1          &&
                 arg[0] == SingleSlash   &&
                 Options.Length != 0     &&
-                Options.Any(o => o.Name == arg.Substring(1)) // We only need this option when parsing options following Windows' conventions
+                Options.Any(o => o.Name == arg.Split(WinArgSeparator, GnuArgSeparator, ' ').First().Substring(1)) // We only need this option when parsing options following Windows' conventions
             ) { return true; }
 
             return arg.Length > 2       &&

@@ -49,7 +49,7 @@ getopt.ShortOpts = "abC:dE:f:GhIjkLmnop:q:r:";
 ### Customisation is available with long opts:
 ```csharp
 getopt.Options = new[] {
-    new Option { Name = "help", ArgumentType = ArgumentType.None, Flag = Value = 'h' },
+    new Option { Name = "help", ArgumentType = ArgumentType.None, Value = 'h' },
     new Option("config", ArgumentType.Required, 'c'),
     new Option("version", ArgumentType.Optional, 'v')
 };

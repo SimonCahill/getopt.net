@@ -124,7 +124,7 @@ namespace getopt.net {
         /// By convention, Windows-like options begin with a slash (/).
         /// Options with arguments are separated by a colon ':'.
         /// </remarks>
-        public bool AllowWindowsConventions { get; set; } = true;
+        public bool AllowWindowsConventions { get; set; } = false;
 
         /// <summary>
         /// Gets the current index of the app arguments being parsed.

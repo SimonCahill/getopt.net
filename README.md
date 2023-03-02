@@ -22,7 +22,7 @@ There are several methods of installing and using getopt.net in your project.
 
 # Features
 
-### Full support for getopt-like command-line options:
+### Full support for getopt-like command-line options
 
  - `--long-opts`
  - `--long-opts=with_options`
@@ -30,6 +30,16 @@ There are several methods of installing and using getopt.net in your project.
  - `-ShortOpTs`
  - `-ShortsWithOpTi0n5`
  - `-s with_opts`
+
+### Support for options using the Windows convention
+
+ - `/h` (short opts)
+ - `/long-opts`
+ - `/hxcfsdf` (GNU-style short opts!)
+ - `/long-opts:with-win-style-args`
+ - `/long-opts with-args-separated-by-space`
+ - `/long-opts=with-posix-separator`
+ - `/fmyfile` (short opts with parameters!)
 
 ### The standard getopt shortopt-string format is supported:
 ```csharp
@@ -80,6 +90,7 @@ static void Main(string[] args) {
         ShortOpts = "hvc:",
         AppArgs = args, // REQUIRED
         OnlyShortOpts = false,
+        // AllowWindowsConventions = true, // enable this for Windows-style options
         // other options here
     };
 
@@ -115,7 +126,8 @@ module Program
         Dim getopt = New GetOpt With {
             .AppArgs = args,
             .Options = _progOptions,
-            .ShortOpts = _progShortOptions
+            .ShortOpts = _progShortOptions,
+            ' .AllowWindowsConventions = true ' enable me for Windows-style options!
         }
 
         Dim optChar = 0

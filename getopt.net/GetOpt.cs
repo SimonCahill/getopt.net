@@ -16,22 +16,44 @@ namespace getopt.net {
         /// <summary>
         /// The character that is returned when an option is missing a required argument.
         /// </summary>
-        public const char MissingArgChar = '?';
+        public const char MissingArgChar    = '?';
 
         /// <summary>
         /// The character that is returned when an invalid option is returned.
         /// </summary>
-        public const char InvalidOptChar = '!';
+        public const char InvalidOptChar    = '!';
 
         /// <summary>
         /// The character that is returned when a non-option value is encountered and it is not the argument to an option.
         /// </summary>
-        public const char NonOptChar     = (char)1;
+        public const char NonOptChar        = (char)1;
 
         /// <summary>
         /// This is the string getopt.net looks for when <see cref="DoubleDashStopsParsing" /> is enabled.
         /// </summary>
-        public const string DoubleDash   = "--";
+        public const string DoubleDash      = "--";
+
+        /// <summary>
+        /// A single dash character.
+        /// This is the character that is searched for, when parsing POSIX-/GNU-like options.
+        /// </summary>
+        public const char SingleDash        = '-';
+
+        /// <summary>
+        /// A single slash.
+        /// This is the char that is searched for when parsing arguments with the Windows convention.
+        /// </summary>
+        public const char SingleSlash       = '/';
+
+        /// <summary>
+        /// The argument separator used by Windows.
+        /// </summary>
+        public const char WinArgSeparator   = ':';
+
+        /// <summary>
+        /// The argument separator used by POSIX / GNU getopt.
+        /// </summary>
+        public const char GnuArgSeparator   = '=';
 
         /// <summary>
         /// An optional list of long options to go with the short options.
@@ -94,6 +116,15 @@ namespace getopt.net {
         /// When this is set to <code >true</code>, all remaining arguments in AppArgs will be returned without being parsed.
         /// </remarks>
         public bool StopParsingOptions { get; set; } = false;
+
+        /// <summary>
+        /// Gets or sets a value indicating whether or not Windows argument conventions are allowed.
+        /// </summary>
+        /// <remarks >
+        /// By convention, Windows-like options begin with a slash (/).
+        /// Options with arguments are separated by a colon ':'.
+        /// </remarks>
+        public bool AllowWindowsConventions { get; set; } = false;
 
         /// <summary>
         /// Gets the current index of the app arguments being parsed.
@@ -205,10 +236,10 @@ namespace getopt.net {
                 return NonOptChar;
             }
 
-            if (IsLongOption(ref AppArgs[m_currentIndex])) {
+            if (IsLongOption(AppArgs[m_currentIndex])) {
                 if (Options.Length == 0) { throw new ParseException("Cannot parse long option! No option list provided!"); }
                 return ParseLongOption(out outOptArg);
-            } else if (IsShortOption(ref AppArgs[CurrentIndex])) {
+            } else if (IsShortOption(AppArgs[CurrentIndex])) {
                 // check if both arg lists are empty
                 if (string.IsNullOrEmpty(ShortOpts) && Options.Length == 0) { throw new ParseException("Cannot parse short option! No option list provided!"); }
                 return ParseShortOption(out outOptArg);
@@ -255,7 +286,7 @@ namespace getopt.net {
             var opt = (Option)nullableOpt;
             switch (opt.ArgumentType) {
                 case ArgumentType.Required:
-                    if (optArg == null && (IsLongOption(ref AppArgs[CurrentIndex + 1]) || IsShortOption(ref AppArgs[CurrentIndex + 1]))) {
+                    if (optArg == null && (IsLongOption(AppArgs[CurrentIndex + 1]) || IsShortOption(AppArgs[CurrentIndex + 1]))) {
                         if (IgnoreMissingArgument) {
                             m_currentIndex += 1;
                             return MissingArgChar;
@@ -282,7 +313,7 @@ namespace getopt.net {
                     break;
                 case ArgumentType.Optional:
                     // DRY this off at some point
-                    if (optArg == null && !IsLongOption(ref AppArgs[CurrentIndex + 1]) && !IsShortOption(ref AppArgs[CurrentIndex + 1])) {
+                    if (optArg == null && !IsLongOption(AppArgs[CurrentIndex + 1]) && !IsShortOption(AppArgs[CurrentIndex + 1])) {
                         optArg = AppArgs[CurrentIndex + 1];
                         ++m_currentIndex;
                     }
@@ -304,7 +335,7 @@ namespace getopt.net {
             var curOpt = AppArgs[CurrentIndex][m_optPosition];
             if (ShortOptRequiresArg(ref curOpt)) {
                 if (m_optPosition + 1 >= AppArgs[CurrentIndex].Length) {
-                    if (!IsLongOption(ref AppArgs[CurrentIndex + 1]) && !IsShortOption(ref AppArgs[CurrentIndex + 1])) {
+                    if (!IsLongOption(AppArgs[CurrentIndex + 1]) && !IsShortOption(AppArgs[CurrentIndex + 1])) {
                         optArg = AppArgs[CurrentIndex + 1];
                         ResetOptPosition();
 
@@ -383,10 +414,19 @@ namespace getopt.net {
         /// <param name="argVal">Out var; the value of the argument</param>
         /// <returns><code >true</code> if the option contains its argument. <code >false</code> otherwise.</returns>
         protected bool HasArgumentInOption(out string optName, out string? argVal) {
-            var curArg = AppArgs[m_currentIndex];
+            var curArg = AppArgs[CurrentIndex];
             var splitString = Array.Empty<string>();
 
-            splitString = ArgumentSplitter().Split(AppArgs[m_currentIndex]);
+            if (AllowWindowsConventions) {
+                // if we're allowing Windows conventions, we have to replace
+                // the first occurrence of ':' in the arg string with '='
+                var indexOfSeparator = curArg.IndexOf(WinArgSeparator);
+                if (indexOfSeparator != -1) {
+                    curArg = $"{ curArg.Substring(0, indexOfSeparator) }{ GnuArgSeparator }{ curArg.Substring(indexOfSeparator + 1) }";
+                }
+            }
+
+            splitString = ArgumentSplitter().Split(curArg);
 
             if (splitString.Length == 1) {
                 optName = StripDashes(true); // we can set this to true, because this method will only ever be called for long opts
@@ -406,18 +446,25 @@ namespace getopt.net {
         /// <summary>
         /// Strips leading dashes from strings.
         /// </summary>
+        /// <remarks >
+        /// If <see cref="AllowWindowsConventions" /> is enabled, then this method will also strip leading slashes!
+        /// </remarks>
         /// <param name="isLongOpt">Whether or not the current option is a long option.</param>
         /// <returns>The stripped string</returns>
         protected string StripDashes(bool isLongOpt) {
             var curArg = AppArgs[m_currentIndex];
 
-            if (!curArg.StartsWith("--") && !curArg.StartsWith("-")) {
+            if (AllowWindowsConventions && curArg.StartsWith(SingleSlash.ToString())) {
+                return curArg.Substring(1);
+            }
+
+            if (!curArg.StartsWith(DoubleDash) && !curArg.StartsWith(SingleDash.ToString())) {
                 return curArg;
             }
 
-            if (isLongOpt && curArg.StartsWith("--")) {
+            if (isLongOpt && curArg.StartsWith(DoubleDash)) {
                 return curArg.Substring(2);
-            } else if (curArg.StartsWith("-")) {
+            } else if (curArg.StartsWith(SingleDash.ToString())) {
                 return curArg.Substring(1);
             }
 
@@ -439,11 +486,20 @@ namespace getopt.net {
         /// </summary>
         /// <param name="arg">The string to check.</param>
         /// <returns><code >true</code> if the passed string is a long option.</returns>
-        protected bool IsLongOption(ref string arg) {
-            return !string.IsNullOrEmpty(arg) && // string must not be null or empty
-                   arg[0] == '-' && // first and 
-                   arg[1] == '-' && // second char must be '-'
-                   arg.Length > 2;                 // if string is "--" then parsing should stop
+        protected bool IsLongOption(string arg) {
+            if (string.IsNullOrEmpty(arg)) { return false; }
+
+            if (
+                AllowWindowsConventions &&
+                arg.Length > 1          &&
+                arg[0] == SingleSlash   &&
+                Options.Length != 0     &&
+                Options.Any(o => o.Name == arg.Split(WinArgSeparator, GnuArgSeparator, ' ').First().Substring(1)) // We only need this option when parsing options following Windows' conventions
+            ) { return true; }
+
+            return arg.Length > 2       &&
+                   arg[0] == SingleDash &&
+                   arg[1] == SingleDash;
         }
 
         /// <summary>
@@ -451,11 +507,19 @@ namespace getopt.net {
         /// </summary>
         /// <param name="arg">The string to check.</param>
         /// <returns><code >true</code> if the string contains one or more short options</returns>
-        protected bool IsShortOption(ref string arg) {
-            return !string.IsNullOrEmpty(arg) &&
-                   arg[0] == '-'  &&
-                   arg.Length > 1 &&
-                   arg[1] != '-';
+        protected bool IsShortOption(string arg) {
+            if (string.IsNullOrEmpty(arg)) { return false; }
+
+            if (
+                AllowWindowsConventions &&                
+                arg.Length > 1          &&
+                arg[0] == SingleSlash   &&
+                arg[1] != SingleSlash
+            ) { return true; }
+
+            return arg.Length > 1       &&
+                   arg[0] == SingleDash &&
+                   arg[1] != SingleDash;
         }
     }
 }

@@ -22,7 +22,7 @@ jobs:
       run: dotnet restore
     - name: Analyse
       id: code-analysis
-      uses: dotnet/code-analysis@latest
+      uses: dotnet/code-analysis
       with:
         solution: getopt.net.sln
         build-breaking: false

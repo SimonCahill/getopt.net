@@ -67,6 +67,7 @@ namespace getopt.net {
 
         /// <summary>
         /// Gets or sets a value indicating whether or not "--" stops parsing.
+        /// Default: <code >true</code>
         /// </summary>
         public bool DoubleDashStopsParsing { get; set; } = true;
 
@@ -77,16 +78,19 @@ namespace getopt.net {
 
         /// <summary>
         /// Gets or sets a value indicating whether or not to only parse short options.
+        /// Default: <code >false</code>
         /// </summary>
         public bool OnlyShortOpts { get; set; } = false;
 
         /// <summary>
         /// Gets or sets a value indicating whether or not to ignore empty values.
+        /// Default: <code  >true</code>
         /// </summary>
         public bool IgnoreEmptyOptions { get; set; } = true;
 
         /// <summary>
         /// Gets or sets a value indicating whether or not to ignore missing arguments.
+        /// Default: <code >false</code>
         /// </summary>
         /// <remarks >
         /// If this is set to <code >true</code> and a required argument is missing, '?' will be returned.
@@ -95,6 +99,7 @@ namespace getopt.net {
 
         /// <summary>
         /// Gets or sets a value indicating whether or not invalid arguments should be ignored or not.
+        /// Default: <code >true</code>
         /// </summary>
         /// <remarks >
         /// If this is set to <code >true</code> and an invalid argument is found, then '!' will be returned.
@@ -103,14 +108,13 @@ namespace getopt.net {
 
         /// <summary>
         /// Gets or sets a value indicating whether or not empty <see cref="AppArgs"/> are ignored or throw an exception.
-        /// </summary>
-        /// <remarks >
         /// Default: <code >true</code>
-        /// </remarks>
+        /// </summary>
         public bool IgnoreEmptyAppArgs { get; set; } = true;
 
         /// <summary>
         /// Gets or sets a value indicating whether or not option parsing shall stop or not.
+        /// Default: <code >false</code>
         /// </summary>
         /// <remarks >
         /// When this is set to <code >true</code>, all remaining arguments in AppArgs will be returned without being parsed.
@@ -119,12 +123,25 @@ namespace getopt.net {
 
         /// <summary>
         /// Gets or sets a value indicating whether or not Windows argument conventions are allowed.
+        /// Default: <code >false</code>
         /// </summary>
         /// <remarks >
         /// By convention, Windows-like options begin with a slash (/).
         /// Options with arguments are separated by a colon ':'.
         /// </remarks>
         public bool AllowWindowsConventions { get; set; } = false;
+
+        /// <summary>
+        /// Either enables or disabled exceptions entirely.
+        /// For more specific control over exceptions, see the other options provided by GetOpt.
+        /// </summary>
+        /// <value><code >true</code> if exceptions are enabled, <code >false</code> otherwise.</value>
+        public bool AllExceptionsDisabled {
+            get => IgnoreEmptyAppArgs && IgnoreEmptyOptions && IgnoreMissingArgument && IgnoreInvalidOptions && IgnoreEmptyAppArgs;
+            set {
+                IgnoreEmptyAppArgs = IgnoreEmptyOptions = IgnoreMissingArgument = IgnoreInvalidOptions = IgnoreEmptyAppArgs = value;
+            }
+        }
 
         /// <summary>
         /// Gets the current index of the app arguments being parsed.

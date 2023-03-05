@@ -1,7 +1,15 @@
 # getop.net changelog
 
+# v0.5.1
+
+## Changes
+ - Added new property to completely enable or disable exceptions
+ - This change does **NOT** affect the way the `IgnoreXXX` properties work!
+
 # v0.5.0
-Added support for Windows-style command-line options!
+
+## Changes
+ - Added support for Windows-style command-line options!
 
 # v0.4.0
 This release introduces a potentially breaking change!

@@ -11,7 +11,7 @@ getopt.net is written entirely in C# and is a "cleanroom port"; although not nec
 ![Build Workflow](https://github.com/SimonCahill/getopt.net/actions/workflows/build.yaml/badge.svg)
 ![Test Workflow](https://github.com/SimonCahill/getopt.net/actions/workflows/run-tests.yaml/badge.svg)
 [![Nuget Version](https://img.shields.io/nuget/v/getopt.net-bsd?logo=nuget)](https://www.nuget.org/packages/getopt.net-bsd/)
-[![GitHub all releases](https://img.shields.io/github/downloads/SimonCahill/getopt.net/total?logo=github)](https://github.com/SimonCahill/getopt.net/Releases)
+[![GitHub all releases](https://img.shields.io/github/downloads/SimonCahill/getopt.net/total?logo=github)](https://github.com/SimonCahill/getopt.net/releases)
 [![Nuget Downloads](https://img.shields.io/nuget/dt/getopt.net-bsd?logo=nuget)](https://www.nuget.org/packages/getopt.net-bsd/)
 ![GitHub](https://img.shields.io/github/license/SimonCahill/getopt.net)
 

@@ -14,6 +14,7 @@ getopt.net is written entirely in C# and is a "cleanroom port"; although not nec
 [![GitHub all releases](https://img.shields.io/github/downloads/SimonCahill/getopt.net/total?logo=github)](https://github.com/SimonCahill/getopt.net/releases)
 [![Nuget Downloads](https://img.shields.io/nuget/dt/getopt.net-bsd?logo=nuget)](https://www.nuget.org/packages/getopt.net-bsd/)
 ![GitHub](https://img.shields.io/github/license/SimonCahill/getopt.net)
+[![CodeQL](https://github.com/SimonCahill/getopt.net/actions/workflows/codeql.yml/badge.svg)](https://github.com/SimonCahill/getopt.net/actions/workflows/codeql.yml)
 
 # Installation
 

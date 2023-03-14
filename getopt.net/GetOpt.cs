@@ -290,31 +290,26 @@ namespace getopt.net {
             AppArgs[m_currentIndex] = StripDashes(true);
 
             var nullableOpt = Options.FindOptionOrDefault(AppArgs[m_currentIndex]);
-            if (nullableOpt == null) {
+            if (nullableOpt is null) {
+                ++m_currentIndex;
                 if (!IgnoreInvalidOptions) {
-                    ++m_currentIndex;
                     throw new ParseException(AppArgs[m_currentIndex], "Invalid option found!");
                 }
-                ++m_currentIndex;
+                
                 return InvalidOptChar;
             }
-
             
             var opt = (Option)nullableOpt;
             switch (opt.ArgumentType) {
                 case ArgumentType.Required:
                     if (optArg == null && (IsLongOption(AppArgs[CurrentIndex + 1]) || IsShortOption(AppArgs[CurrentIndex + 1]))) {
+                        ++m_currentIndex;
                         if (IgnoreMissingArgument) {
-                            m_currentIndex += 1;
                             return MissingArgChar;
-                        }
-                        else {
-                            ++m_currentIndex;
+                        } else {
                             throw new ParseException(AppArgs[CurrentIndex], "Missing required argument!");
                         }
-                    } else if (optArg != null) {
-                        break;
-                    }
+                    } else if (optArg != null) { break; }
 
                     optArg = AppArgs[CurrentIndex + 1];
                     if (MustStopParsing()) { // POSIX behaviour desired
@@ -322,7 +317,7 @@ namespace getopt.net {
                         break;
                     }
 
-                    m_currentIndex += 1;
+                    ++m_currentIndex;
                     break;
                 case ArgumentType.None:
                 default: // this case will handle cases where developers carelessly cast integers to the enum type
@@ -337,7 +332,6 @@ namespace getopt.net {
                     break;
             }
 
-            
             ++m_currentIndex;
             return opt.Value;
         }
@@ -471,11 +465,13 @@ namespace getopt.net {
         protected string StripDashes(bool isLongOpt) {
             var curArg = AppArgs[m_currentIndex];
 
-            if (AllowWindowsConventions && curArg.StartsWith(SingleSlash.ToString())) {
+            if (AllowWindowsConventions &&
+                curArg.StartsWith(SingleSlash.ToString())) {
                 return curArg.Substring(1);
             }
 
-            if (!curArg.StartsWith(DoubleDash) && !curArg.StartsWith(SingleDash.ToString())) {
+            if (!curArg.StartsWith(DoubleDash) &&
+                !curArg.StartsWith(SingleDash.ToString())) {
                 return curArg;
             }
 

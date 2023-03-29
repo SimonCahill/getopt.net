@@ -1,5 +1,14 @@
 # getop.net changelog
 
+# v0.6.0
+
+Version 0.6.0 introduces a non-breaking change which enabled support for optional short-opt arguments!
+Check out the wiki/README for more info!
+
+## Changes
+  - Added support for optional short args!
+
+
 # v0.5.1
 
 ## Changes

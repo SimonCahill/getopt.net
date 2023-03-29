@@ -47,15 +47,20 @@ There are several methods of installing and using getopt.net in your project.
  - `/fmyfile` (short opts with parameters!)
 
 ### The standard getopt shortopt-string format is supported:
+
+`:` denotes a **required** argument!
+`;` denotes an **optional** argument!
+If none of the above is present after a character in `ShortOpts`, then **no argument** is required.
+
 ```csharp
-getopt.ShortOpts = "abC:dE:f:GhIjkLmnop:q:r:";
+getopt.ShortOpts = "abC:dE:f:GhIjkLmnop:q:r;";
 ```
 
 ### Customisation is available with long opts:
 ```csharp
 getopt.Options = new[] {
-    new Option { Name = "help", ArgumentType = ArgumentType.None, Value = 'h' },
-    new Option("config", ArgumentType.Required, 'c'),
+    new Option { Name = "help", ArgumentType = ArgumentType.None, Value = 'h' }, // brace-initialiser
+    new Option("config", ArgumentType.Required, 'c'), // standard constructor
     new Option("version", ArgumentType.Optional, 'v')
 };
 ```

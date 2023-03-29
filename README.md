@@ -5,7 +5,7 @@ This repository contains the code for my port of the GNU getopt functionality fo
 getopt.net is written entirely in C# and is a "cleanroom port"; although not necessary it made the project that much more fun :)
 
 <p align="center" >
-    <img src="https://raw.githubusercontent.com/SimonCahill/getopt.net/master/img/getopt.net-logo-128.png" alt="getopt.net-logo" >
+    <img align="center" src="https://raw.githubusercontent.com/SimonCahill/getopt.net/master/img/getopt.net-logo-128.png" alt="getopt.net-logo" >
 </p>
 
 ![Build Workflow](https://github.com/SimonCahill/getopt.net/actions/workflows/build.yaml/badge.svg)
@@ -21,7 +21,7 @@ getopt.net is written entirely in C# and is a "cleanroom port"; although not nec
 There are several methods of installing and using getopt.net in your project.
 
 1. Add the repository as a submodule, checkout a tag and include it as a project reference in your solution
-2. Use the NuGet package manager: `install-package getopt.net-bsd` Note the `-bsd` ending which shows the license used and **not** system requirements! getopt.net was already in use :c
+2. Use the NuGet package manager: `install-package getopt.net-bsd` Note the `-bsd` ending which shows the license used and **not** system requirements! getopt.net was already in use :(
 
 [NuGet page](https://www.nuget.org/packages/getopt.net-bsd/)
 

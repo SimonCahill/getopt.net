@@ -13,7 +13,7 @@ Module Program
         New [Option]("file", ArgumentType.Required, "f"c)
     }
 
-    Dim _progShortOptions As String = "hvf:"
+    Dim _progShortOptions As String = "hvf:t;" ' the last option isn't an error!
 
     Sub Main(args As String())
         Dim getopt = New GetOpt With {
@@ -43,6 +43,8 @@ Module Program
                         Return
                     End If
                     fileToRead = optArg
+                Case Convert.ToInt32("t"c)
+                    Console.WriteLine($"You passed the option 't' with the argument { If(optArg, "(no argument supplied)") }")
             End Select
         End While
 

@@ -89,8 +89,8 @@ namespace getopt.net.tests {
         [TestMethod]
         public void TestGetNextOptShort_WithoutLongOpts() {
             var opt = new GetOpt();
-            opt.ShortOpts = "hc:v";
-            opt.AppArgs = new[] { "/h", "/ctest", "/v" };
+            opt.ShortOpts = "hc:vf;";
+            opt.AppArgs = new[] { "/h", "-ctest", "/v", "/f", "/ftest", "/f", "test2" };
             opt.AllowWindowsConventions = true;
 
             var optChar = (char)opt.GetNextOpt(out var optArg);
@@ -104,6 +104,18 @@ namespace getopt.net.tests {
             optChar = (char)opt.GetNextOpt(out optArg);
             Assert.AreEqual('v', optChar);
             Assert.AreEqual(null, optArg);
+
+            optChar = (char)opt.GetNextOpt(out optArg);
+            Assert.AreEqual('f', optChar);
+            Assert.AreEqual(null, optArg);
+
+            optChar = (char)opt.GetNextOpt(out optArg);
+            Assert.AreEqual('f', optChar);
+            Assert.AreEqual("test", optArg);
+
+            optChar = (char)opt.GetNextOpt(out optArg);
+            Assert.AreEqual('f', optChar);
+            Assert.AreEqual("test2", optArg);
         }
 
         [TestMethod]
@@ -342,7 +354,7 @@ namespace getopt.net.tests {
         [TestMethod]
         public void TestDoubleDashStopsParsing_True() {
             var opt = new GetOpt {
-                AppArgs = new[] { "/hcv", "--", "/test", "/xzf" },
+                AppArgs = new[] { "/hc", "/v", "--", "/test", "/xzf" },
                 DoubleDashStopsParsing = true, // this is true by default
                 Options = new Option[] {
                     new Option("help", ArgumentType.None, 'h'),
@@ -387,7 +399,7 @@ namespace getopt.net.tests {
         [ExpectedException(typeof(ParseException))]
         public void TestDoubleDashStopsParsing_and_IgnoreInvalidOptions_False() {
             var opt = new GetOpt {
-                AppArgs = new[] { "/hcv", "--", "/test", "/xzf" },
+                AppArgs = new[] { "/hc", "/v", "--", "/test", "/xzf" },
                 DoubleDashStopsParsing = false, // this is true by default
                 IgnoreInvalidOptions = false, // this is default true
                 Options = new Option[] {
@@ -422,7 +434,7 @@ namespace getopt.net.tests {
         [TestMethod]
         public void TestDoubleDashStopsParsing_False() {
             var opt = new GetOpt {
-                AppArgs = new[] { "/hcv", "--", "/test", "/xzf" },
+                AppArgs = new[] { "/hc", "/v", "--", "/test", "/xzf" },
                 DoubleDashStopsParsing = false, // this is true by default
                 Options = new Option[] {
                     new Option("help", ArgumentType.None, 'h'),

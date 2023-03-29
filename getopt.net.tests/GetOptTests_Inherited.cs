@@ -62,7 +62,17 @@
             Assert.AreEqual("shortopt", StripDashes(false));
         }
 
+        [TestMethod]
+        public void TestShortOptRequiresArg_NoArgRequired() {
+            AppArgs = new[] { "-abcd" };
+            Options = Array.Empty<Option>();
+            ShortOpts = "abcd";
 
+            Assert.AreEqual(ArgumentType.None, ShortOptRequiresArg('a'));
+            Assert.AreEqual(ArgumentType.None, ShortOptRequiresArg('b'));
+            Assert.AreEqual(ArgumentType.None, ShortOptRequiresArg('c'));
+            Assert.AreEqual(ArgumentType.None, ShortOptRequiresArg('d'));
+        }
 
         [TestMethod]
         public void TestHasArgumentInOption_HasArgs() {
@@ -151,6 +161,22 @@
             Assert.AreEqual(2, ArgumentSplitter().Split(TestString6).Where(x => !string.IsNullOrEmpty(x) && !string.IsNullOrWhiteSpace(x) && x != "=").Count());
             Assert.AreEqual(2, ArgumentSplitter().Split(TestString7).Where(x => !string.IsNullOrEmpty(x) && !string.IsNullOrWhiteSpace(x) && x != "=").Count());
             Assert.AreEqual(2, ArgumentSplitter().Split(TestString8).Where(x => !string.IsNullOrEmpty(x) && !string.IsNullOrWhiteSpace(x) && x != "=").Count());
+        }
+
+        [TestMethod]
+        public void TestShortOptWithOptionalArg() {
+            ShortOpts = "aAb;B:cd:efg;";
+
+            Assert.AreEqual(ArgumentType.None,      ShortOptRequiresArg('a'));
+            Assert.AreEqual(ArgumentType.None,      ShortOptRequiresArg('A'));
+            Assert.AreEqual(ArgumentType.Optional,  ShortOptRequiresArg('b'));
+            Assert.AreEqual(ArgumentType.Required,  ShortOptRequiresArg('B'));
+            Assert.AreEqual(ArgumentType.None,      ShortOptRequiresArg('c'));
+            Assert.AreEqual(ArgumentType.Required,  ShortOptRequiresArg('d'));
+            Assert.AreEqual(ArgumentType.None,      ShortOptRequiresArg('e'));
+            Assert.AreEqual(ArgumentType.None,      ShortOptRequiresArg('f'));
+            Assert.AreEqual(ArgumentType.Optional,  ShortOptRequiresArg('g'));
+            Assert.IsNull(ShortOptRequiresArg('z'));
         }
 
     }

@@ -5,7 +5,7 @@ This repository contains the code for my port of the GNU getopt functionality fo
 getopt.net is written entirely in C# and is a "cleanroom port"; although not necessary it made the project that much more fun :)
 
 <p align="center" >
-    <img src="https://raw.githubusercontent.com/SimonCahill/getopt.net/master/img/getopt.net-logo-128.png" alt="getopt.net-logo" >
+    <img align="center" src="https://raw.githubusercontent.com/SimonCahill/getopt.net/master/img/getopt.net-logo-128.png" alt="getopt.net-logo" >
 </p>
 
 ![Build Workflow](https://github.com/SimonCahill/getopt.net/actions/workflows/build.yaml/badge.svg)
@@ -21,7 +21,7 @@ getopt.net is written entirely in C# and is a "cleanroom port"; although not nec
 There are several methods of installing and using getopt.net in your project.
 
 1. Add the repository as a submodule, checkout a tag and include it as a project reference in your solution
-2. Use the NuGet package manager: `install-package getopt.net-bsd` Note the `-bsd` ending which shows the license used and **not** system requirements! getopt.net was already in use :c
+2. Use the NuGet package manager: `install-package getopt.net-bsd` Note the `-bsd` ending which shows the license used and **not** system requirements! getopt.net was already in use :(
 
 [NuGet page](https://www.nuget.org/packages/getopt.net-bsd/)
 
@@ -47,15 +47,20 @@ There are several methods of installing and using getopt.net in your project.
  - `/fmyfile` (short opts with parameters!)
 
 ### The standard getopt shortopt-string format is supported:
+
+`:` denotes a **required** argument!<br >
+`;` denotes an **optional** argument!<br >
+If none of the above is present after a character in `ShortOpts`, then **no argument** is required.
+
 ```csharp
-getopt.ShortOpts = "abC:dE:f:GhIjkLmnop:q:r:";
+getopt.ShortOpts = "abC:dE:f:GhIjkLmnop:q:r;";
 ```
 
 ### Customisation is available with long opts:
 ```csharp
 getopt.Options = new[] {
-    new Option { Name = "help", ArgumentType = ArgumentType.None, Value = 'h' },
-    new Option("config", ArgumentType.Required, 'c'),
+    new Option { Name = "help", ArgumentType = ArgumentType.None, Value = 'h' }, // brace-initialiser
+    new Option("config", ArgumentType.Required, 'c'), // standard constructor
     new Option("version", ArgumentType.Optional, 'v')
 };
 ```

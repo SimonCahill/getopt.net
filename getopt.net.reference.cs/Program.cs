@@ -10,7 +10,7 @@
                     new Option("version",   ArgumentType.None,      'v'),
                     new Option("file",      ArgumentType.Required,  'f')
                 },
-                ShortOpts = "hvf:"
+                ShortOpts = "hvf:t;" // the last option isn't an error!
             };
 
             var optChar = 0;
@@ -26,6 +26,9 @@
                         return 0;
                     case 'f':
                         fileToRead = optArg;
+                        break;
+                    case 't':
+                        Console.WriteLine($"You passed the option 't' with the argument { (optArg ?? "(no argument supplied)") }");
                         break;
                 }
             }

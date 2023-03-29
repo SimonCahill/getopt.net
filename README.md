@@ -48,8 +48,8 @@ There are several methods of installing and using getopt.net in your project.
 
 ### The standard getopt shortopt-string format is supported:
 
-`:` denotes a **required** argument!
-`;` denotes an **optional** argument!
+`:` denotes a **required** argument!<br >
+`;` denotes an **optional** argument!<br >
 If none of the above is present after a character in `ShortOpts`, then **no argument** is required.
 
 ```csharp

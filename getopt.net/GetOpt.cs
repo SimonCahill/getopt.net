@@ -147,6 +147,24 @@ namespace getopt.net {
         /// </remarks>
         public bool AllowPowershellConventions { get; set; } = false;
 
+        /// <summary>
+        /// Gets or sets a value indicating whether or not parameter files are accepted as a valid form of input.
+        /// 
+        /// Parameter files are known from some software, such as GCC.
+        /// A param file can be passed as <code>@/path/to/file</code>.
+        /// </summary>
+        /// <remarks >
+        /// Param files must follow certain rules, in order to be accepted by getopt.net.
+        /// 
+        ///  - Param files MUST be text files, the file ending doesn't matter.
+        ///  - The contents of the file MUST be split by \n (newlines).
+        ///  - OR the file must contain a valid JSON array
+        ///  - each line or JSON entry must be an argument acceptable by getopt.net, depending on the options set.
+        ///    - i.e. to accept Windows-convention arguments, <see cref="AllowWindowsConventions"/> must be enabled
+        ///    - to accept Powershell-convention arguments, <see cref="AllowPowershellConventions"/> must be enabled
+        ///  - paramfile arguments (`@/path/to/file`) may be added in addition to any other arguments!
+        /// </remarks>
+        public bool AllowParamFiles { get; set; } = false;
 
         /// <summary>
         /// Either enables or disabled exceptions entirely.

@@ -22,16 +22,16 @@ GitHub: https://github.com/SimonCahill/getopt.net</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <!--<ApplicationIcon >../img/getopt.net-icon.ico</ApplicationIcon>-->
-    <Version>0.6.0</Version>
+    <Version>0.7.0</Version>
     <PackageTags>getopt; getopt.net; argument-parsing; parser; arguments; options; getopt_long</PackageTags>
     <PackageReleaseNotes>
-v0.6.0
+v0.7.0
 
-Version 0.6.0 introduces a non-breaking change which enabled support for optional short-opt arguments!
+Version 0.7.0 introduces a non-breaking change which enables support for Powershell-style options!
 Check out the wiki/README for more info!
 
 Changes
-  - Added support for optional short args!
+  - Added support for Powershell-style arguments.
     </PackageReleaseNotes>
     <Title>getopt.net</Title>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>

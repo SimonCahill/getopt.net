@@ -46,10 +46,20 @@ There are several methods of installing and using getopt.net in your project.
  - `/long-opts=with-posix-separator`
  - `/fmyfile` (short opts with parameters!)
 
+### Support for Powershell-style options
+
+ - `-myoption`
+ - `-myoption=argument`
+ - `-myoption:argument` (AllowWindowsConvention must also be enabled!)
+ - `-myoption argument`
+ - `-myoption` `argument`
+
 ### The standard getopt shortopt-string format is supported:
 
-`:` denotes a **required** argument!<br >
-`;` denotes an **optional** argument!<br >
+`:` denotes a **required** argument!
+
+`;` denotes an **optional** argument!
+
 If none of the above is present after a character in `ShortOpts`, then **no argument** is required.
 
 ```csharp

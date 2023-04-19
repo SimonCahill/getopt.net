@@ -495,5 +495,91 @@ namespace getopt.net.tests {
             Assert.IsNull(optArg);
         }
 
+        [TestMethod]
+        public void TestPowershellConvention_LongOptions() {
+            var getopt = new GetOpt {
+                Options = new[] {
+                    new Option("test", ArgumentType.None, '1'),
+                    new Option("test2", ArgumentType.Optional, '2'),
+                    new Option("test3", ArgumentType.Required, '3')
+                },
+                AllowPowershellConventions = true,
+                AppArgs = new[] { "-test", "-1", "-test2", "-2", "-test2:arg", "-test2=arg", "-test2 arg", "-test2", "arg", "-test3:arg", "-test3=arg", "-test3 arg", "-test3", "arg", "-12", "-3", "arg" }
+            };
+
+            const string testArg = "arg";
+
+            var optChar = (char)getopt.GetNextOpt(out var optArg);
+            Assert.AreEqual('1', optChar);
+            Assert.IsNull(optArg);
+
+            optChar = (char)getopt.GetNextOpt(out optArg);
+            Assert.AreEqual('1', optChar);
+            Assert.IsNull(optArg);
+
+            optChar = (char)getopt.GetNextOpt(out optArg);
+            Assert.AreEqual('2', optChar);
+            Assert.IsNull(optArg);
+
+            optChar = (char)getopt.GetNextOpt(out optArg);
+            Assert.AreEqual('2', optChar);
+            Assert.IsNull(optArg);
+
+            getopt.AllowWindowsConventions = true;
+            optChar = (char)getopt.GetNextOpt(out optArg);
+            Assert.AreEqual('2', optChar);
+            Assert.IsNotNull(optArg);
+            Assert.AreEqual(testArg, optArg);
+
+
+            optChar = (char)getopt.GetNextOpt(out optArg);
+            Assert.AreEqual('2', optChar);
+            Assert.IsNotNull(optArg);
+            Assert.AreEqual(testArg, optArg);
+
+            optChar = (char)getopt.GetNextOpt(out optArg);
+            Assert.AreEqual('2', optChar);
+            Assert.IsNotNull(optArg);
+            Assert.AreEqual(testArg, optArg);
+
+            optChar = (char)getopt.GetNextOpt(out optArg);
+            Assert.AreEqual('2', optChar);
+            Assert.IsNotNull(optArg);
+            Assert.AreEqual(testArg, optArg);
+
+            optChar = (char)getopt.GetNextOpt(out optArg);
+            Assert.AreEqual('3', optChar);
+            Assert.IsNotNull(optArg);
+            Assert.AreEqual(testArg, optArg);
+
+            optChar = (char)getopt.GetNextOpt(out optArg);
+            Assert.AreEqual('3', optChar);
+            Assert.IsNotNull(optArg);
+            Assert.AreEqual(testArg, optArg);
+
+            optChar = (char)getopt.GetNextOpt(out optArg);
+            Assert.AreEqual('3', optChar);
+            Assert.IsNotNull(optArg);
+            Assert.AreEqual(testArg, optArg);
+
+            optChar = (char)getopt.GetNextOpt(out optArg);
+            Assert.AreEqual('3', optChar);
+            Assert.IsNotNull(optArg);
+            Assert.AreEqual(testArg, optArg);
+
+            optChar = (char)getopt.GetNextOpt(out optArg);
+            Assert.AreEqual('1', optChar);
+            Assert.IsNull(optArg);
+
+            optChar = (char)getopt.GetNextOpt(out optArg);
+            Assert.AreEqual('2', optChar);
+            Assert.IsNull(optArg);
+
+            optChar = (char)getopt.GetNextOpt(out optArg);
+            Assert.AreEqual('3', optChar);
+            Assert.IsNotNull(optArg);
+            Assert.AreEqual(testArg, optArg);
+        }
+
     }
 }

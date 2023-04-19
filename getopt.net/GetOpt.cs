@@ -137,6 +137,18 @@ namespace getopt.net {
         public bool AllowWindowsConventions { get; set; } = false;
 
         /// <summary>
+        /// Gets or sets a value indicating whether or not Powershell-style arguments are allowed.
+        /// This option doesn't conflict with the GNU/POSIX or Windows-style argument parsing and is simply an addition.
+        /// </summary>
+        /// <remarks >
+        /// This option is disabled by default.
+        /// 
+        /// Powershell-style arguments are similar to GNU/POSIX long options, however they begin with a single dash (-).
+        /// </remarks>
+        public bool AllowPowershellConventions { get; set; } = false;
+
+
+        /// <summary>
         /// Either enables or disabled exceptions entirely.
         /// For more specific control over exceptions, see the other options provided by GetOpt.
         /// </summary>
@@ -572,6 +584,19 @@ namespace getopt.net {
                 arg[0] == SingleSlash   &&
                 Options.Length != 0     &&
                 Options.Any(o => o.Name == arg.Split(WinArgSeparator, GnuArgSeparator, ' ').First().Substring(1)) // We only need this option when parsing options following Windows' conventions
+            ) { return true; }
+
+            // Check for Powershell-style arguments.
+            // Powershell arguments are weird and extra checks are needed.
+            // Powershell-style arguments would theoretically interfere with short opts,
+            // so a check to determine whether or not the option is found in Options is required.
+            if (
+                AllowPowershellConventions  &&
+                arg.Length > 1              &&
+                arg[0] == SingleDash        &&
+                Options.Length != 0         &&
+                Options.Any(o => o.Name == arg.Split(WinArgSeparator, GnuArgSeparator, ' ').First().Substring(1)) // We only need this when parsing options following Powershell's conventions
+                // This parsing method is really similar to Windows option parsing...
             ) { return true; }
 
             return arg.Length > 2       &&

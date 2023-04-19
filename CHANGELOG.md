@@ -1,5 +1,13 @@
 # getop.net changelog
 
+# v0.7.0
+
+Version 0.7.0 introduces a non-breaking change which enables support for Powershell-style options!
+Check out the wiki/README for more information!
+
+## Changes
+ - Added support for Powershell-style options!
+
 # v0.6.0
 
 Version 0.6.0 introduces a non-breaking change which enabled support for optional short-opt arguments!

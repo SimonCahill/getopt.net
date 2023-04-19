@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net46;net6.0;net7.0</TargetFrameworks>
+    <TargetFrameworks>net6.0;net7.0;net46;</TargetFrameworks>
     <ImplicitUsings>disable</ImplicitUsings>
     <LangVersion>11</LangVersion>
     <Nullable>enable</Nullable>
@@ -35,7 +35,7 @@ Changes
     </PackageReleaseNotes>
     <Title>getopt.net</Title>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-    <PackageIcon >getopt.net-logo-128.png</PackageIcon>
+    <PackageIcon>getopt.net-logo-128.png</PackageIcon>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -49,6 +49,7 @@ Changes
     <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <ItemGroup>
+    <None Include="..\.editorconfig" Link=".editorconfig" />
     <None Include="..\LICENSE">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
@@ -57,9 +58,9 @@ Changes
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
-    <None Include="..\img\getopt.net-logo-128.png" >
+    <None Include="..\img\getopt.net-logo-128.png">
         <Pack>True</Pack>
-        <PackagePath >\</PackagePath>
+        <PackagePath>\</PackagePath>
     </None>
   </ItemGroup>
 

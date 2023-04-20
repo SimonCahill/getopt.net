@@ -5,10 +5,6 @@ namespace getopt.net {
     using System.IO;
     using System.Text.RegularExpressions;
 
-#if NET30_OR_GREATER
-    using System.Text.Json;
-#endif
-
     /// <summary>
     /// GetOpt-like class for handling getopt-like command-line arguments in .net.
     /// 
@@ -174,8 +170,7 @@ namespace getopt.net {
         /// 
         ///  - Param files MUST be text files, the file ending doesn't matter.
         ///  - The contents of the file MUST be split by \n (newlines).
-        ///  - OR the file must contain a valid JSON array
-        ///  - each line or JSON entry must be an argument acceptable by getopt.net, depending on the options set.
+        ///  - each line must be an argument acceptable by getopt.net, depending on the options set.
         ///    - i.e. to accept Windows-convention arguments, <see cref="AllowWindowsConventions"/> must be enabled
         ///    - to accept Powershell-convention arguments, <see cref="AllowPowershellConventions"/> must be enabled
         ///  - paramfile arguments (`@/path/to/file`) may be added in addition to any other arguments!
@@ -303,6 +298,12 @@ namespace getopt.net {
                 outOptArg = AppArgs[CurrentIndex];
                 m_currentIndex++;
                 return NonOptChar;
+            }
+
+            // Now check if the current argument is a paramfile argument
+            if (IsParamFileArg(AppArgs[CurrentIndex], out var paramFile)) {
+                ReadParamFile(new FileInfo(paramFile));
+                return GetNextOpt(out outOptArg); // We don't need to pass this back to the application. Instead just continue on
             }
 
             if (IsLongOption(AppArgs[m_currentIndex])) {
@@ -684,11 +685,16 @@ namespace getopt.net {
             return true;
         }
 
-        protected bool ReadParamFile(FileInfo paramFile) {
-            if (paramFile == null || !paramFile.Exists) { return false; }
+        protected void ReadParamFile(FileInfo paramFile) {
+            if (paramFile == null || !paramFile.Exists) { return; }
 
+            var lastIndex = AppArgs.Length - 1;
             var lines = File.ReadAllLines(paramFile.FullName);
-            Array.Resize(ref m_appArgs, lines.Length);
+            Array.Resize(ref m_appArgs, lines.Length + AppArgs.Length);
+
+            for (int i = lastIndex, j = 0; i < m_appArgs.Length && j < lines.Length; i++, j++) {
+                m_appArgs[i] = lines[j];
+            }
         }
     }
 }

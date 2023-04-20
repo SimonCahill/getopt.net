@@ -37,7 +37,6 @@ To allow Powershell or Windows conventions, you will still need to enable `Allow
 ## Changes
  - Added support for paramfiles
  - Updated reference implementations
-
     </PackageReleaseNotes>
     <Title>getopt.net</Title>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>

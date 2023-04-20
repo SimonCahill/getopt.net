@@ -1,5 +1,18 @@
 # getop.net changelog
 
+# v0.8.0
+
+Version 0.8.0 introduces a non-breaking change which enables support for paramfiles!
+
+Some applications, notably GCC, use paramfiles as a way to pass a large amount of options and arguments to an application.
+Paramfiles are line-separated lists of arguments and can be enabled by setting `AllowParamFiles = true`.
+Each line in the paramfile will be parsed as if it were passed directly to getopt.net!
+To allow Powershell or Windows conventions, you will still need to enable `AllowWindowsConventions` or `AllowPowershellConventions` respectively.
+
+## Changes
+ - Added support for paramfiles
+ - Updated reference implementations
+
 # v0.7.0
 
 Version 0.7.0 introduces a non-breaking change which enables support for Powershell-style options!

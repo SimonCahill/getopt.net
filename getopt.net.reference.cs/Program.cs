@@ -1,4 +1,8 @@
-﻿namespace getopt.net.reference.cs {
+﻿using System;
+
+namespace getopt.net.reference.cs {
+
+    using System.IO;
 
     internal class Program {
 
@@ -10,7 +14,10 @@
                     new Option("version",   ArgumentType.None,      'v'),
                     new Option("file",      ArgumentType.Required,  'f')
                 },
-                ShortOpts = "hvf:t;" // the last option isn't an error!
+                ShortOpts = "hvf:t;", // the last option isn't an error!
+                AllowParamFiles = true,
+                AllowWindowsConventions = true,
+                AllowPowershellConventions = true
             };
 
             var optChar = 0;
@@ -60,16 +67,32 @@
                 myapp -f /path/to/file
                 myapp --file=/path/to/file
                 myapp --file /path/to/file
+
+                myapp @/path/to/paramfile # load all args from param file
             
             Arguments:
                 --help,     -h      Displays this menu and exits
+                /help,      /h      Displays this menu and exits (Windows conventions)
+                -help,      -h      Displays this menu and exits (Powershell conventions)
+
                 --version,  -v      Displays the version and exits
+                /version,   /v      Displays the version and exits (Windows conventions)
+                -version,   -v      Displays the version and exits (Powershell conventions)
+
                 --file=<>,  -f<>    Reads the file back to stdout.
+                --file <>,  -f<>    Reads the file back to stdout.
+                --file:<>,  -f<>    Reads the file back to stdout. (Windows arg conventions)
+                /file=<>,   /f<>    Reads the file back to stdout. (Windows opt and GNU/POSIX arg conventions)
+                /file <>,   /f<>    Reads the file back to stdout. (Windows opt and GNU/POSIX arg conventions)
+                /file:<>,   /f<>    Reads the file back to stdout. (Windows conventions)
+                -file=<>,   -f<>    Reads the file back to stdout. (Powershell opt and GNU/POSIX arg conventions)
+                -file <>,   -f<>    Reads the file back to stdout. (Powershell opt and GNU/POSIX arg conventions)
+                -file:<>,   -f<>    Reads the file back to stdout. (Powershell opt and Windows arg conventions)
             """);
         }
 
         static void PrintVersion() {
-            Console.WriteLine("myapp v1.0.0");
+            Console.WriteLine("myapp v0.8.0");
         }
     }
 }

@@ -179,6 +179,70 @@
             Assert.IsNull(ShortOptRequiresArg('z'));
         }
 
+        [TestMethod]
+        public void TestIsParamFileArg() {
+            var tmpFile = Path.GetTempFileName();
+            AllowParamFiles = true;
+            Assert.IsTrue(IsParamFileArg($"@{tmpFile}", out var paramFile));
+            Assert.IsNotNull(paramFile);
+            Assert.IsFalse(string.IsNullOrEmpty(paramFile));
+            Assert.AreEqual(tmpFile, paramFile);
+
+            Assert.IsFalse(IsParamFileArg("--long-opt", out paramFile));
+            Assert.IsNull(paramFile);
+
+            AllowParamFiles = false;
+            Assert.IsFalse(IsParamFileArg($"@{tmpFile}", out paramFile));
+            Assert.IsNull(paramFile);
+        }
+
+        [TestMethod]
+        public void TestParseParamFile() {
+            var tmpFile = Path.GetTempFileName();
+            File.WriteAllLines(tmpFile, new[] {
+                "-1234", "--long"
+            });
+            AllowParamFiles = true;
+            AppArgs = new[] { $"@{ tmpFile }", "--test" };
+            ShortOpts = string.Empty;
+            Options = new[] {
+                new Option("first", ArgumentType.None, '1'),
+                new Option("second", ArgumentType.None, '2'),
+                new Option("third", ArgumentType.None, '3'),
+                new Option("fourth", ArgumentType.None, '4'),
+                new Option("long", ArgumentType.None, '5'),
+                new Option("test", ArgumentType.None, 't')
+            };
+
+            ReadParamFile(new FileInfo(tmpFile));
+            Assert.AreEqual(4, AppArgs.Length);
+
+            // NOTE: GetNextOpt calls ReadParamFile too! AppArgs will now contain double the amount of args written to the file :)
+            char optChar = (char)GetNextOpt(out var optArg);
+            Assert.AreEqual('t', optChar);
+            Assert.IsNull(optArg);
+
+            optChar = (char)GetNextOpt(out optArg);
+            Assert.AreEqual('1', optChar);
+            Assert.IsNull(optArg);
+
+            optChar = (char)GetNextOpt(out optArg);
+            Assert.AreEqual('2', optChar);
+            Assert.IsNull(optArg);
+
+            optChar = (char)GetNextOpt(out optArg);
+            Assert.AreEqual('3', optChar);
+            Assert.IsNull(optArg);
+
+            optChar = (char)GetNextOpt(out optArg);
+            Assert.AreEqual('4', optChar);
+            Assert.IsNull(optArg);
+
+            optChar = (char)GetNextOpt(out optArg);
+            Assert.AreEqual('5', optChar);
+            Assert.IsNull(optArg);
+        }
+
     }
 
 }

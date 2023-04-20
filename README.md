@@ -54,6 +54,17 @@ There are several methods of installing and using getopt.net in your project.
  - `-myoption argument`
  - `-myoption` `argument`
 
+### Support for paramfiles
+
+Some applications, such as GCC, allow passing of paramfile arguments.
+A paramfile is a line-separated text file which contains one option (and argument) per line.
+Each line of the paramfile is parsed as if it were passed to getopt.net directly.
+
+Syntax:
+```
+myapp @/path/to/paramfile
+```
+
 ### The standard getopt shortopt-string format is supported:
 
 `:` denotes a **required** argument!

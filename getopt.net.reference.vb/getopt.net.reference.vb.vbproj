@@ -3,7 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <RootNamespace>getopt.net.reference.vb</RootNamespace>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFrameworks>net6.0;net7.0;net46;</TargetFrameworks>
     <AssemblyName>myapp</AssemblyName>
   </PropertyGroup>
 

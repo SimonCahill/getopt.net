@@ -2,6 +2,7 @@
 
 namespace getopt.net {
 
+    using System.IO;
     using System.Text.RegularExpressions;
 
     /// <summary>
@@ -53,12 +54,18 @@ namespace getopt.net {
         /// <summary>
         /// The argument separator used by POSIX / GNU getopt.
         /// </summary>
-        public const char GnuArgSeparator = '=';
+        public const char GnuArgSeparator   = '=';
 
         /// <summary>
         /// The regex used by <see cref="ArgumentSplitter"/> to split arguments into a key-value pair.
         /// </summary>
-        public const string ArgSplitRegex = @"([\s]|[=])";
+        public const string ArgSplitRegex   = @"([\s]|[=])";
+
+        /// <summary>
+        /// A single "at" character.
+        /// This character is used when <see cref="AllowParamFiles"/> is enabled, to determine whether or not a param file has been passed to getopt.net.
+        /// </summary>
+        public const char SingleAtSymbol    = '@';
 
         /// <summary>
         /// An optional list of long options to go with the short options.
@@ -76,10 +83,15 @@ namespace getopt.net {
         /// </summary>
         public bool DoubleDashStopsParsing { get; set; } = true;
 
+        private string[] m_appArgs = Array.Empty<string>();
+
         /// <summary>
         /// Gets or sets the arguments to parse.
         /// </summary>
-        public string[] AppArgs { get; set; } = Array.Empty<string>();
+        public string[] AppArgs {
+            get => m_appArgs;
+            set => m_appArgs = value;
+        }
 
         /// <summary>
         /// Gets or sets a value indicating whether or not to only parse short options.
@@ -146,6 +158,24 @@ namespace getopt.net {
         /// Powershell-style arguments are similar to GNU/POSIX long options, however they begin with a single dash (-).
         /// </remarks>
         public bool AllowPowershellConventions { get; set; } = false;
+
+        /// <summary>
+        /// Gets or sets a value indicating whether or not parameter files are accepted as a valid form of input.
+        /// 
+        /// Parameter files are known from some software, such as GCC.
+        /// A param file can be passed as <code>@/path/to/file</code>.
+        /// </summary>
+        /// <remarks >
+        /// Param files must follow certain rules, in order to be accepted by getopt.net.
+        /// 
+        ///  - Param files MUST be text files, the file ending doesn't matter.
+        ///  - The contents of the file MUST be split by \n (newlines).
+        ///  - each line must be an argument acceptable by getopt.net, depending on the options set.
+        ///    - i.e. to accept Windows-convention arguments, <see cref="AllowWindowsConventions"/> must be enabled
+        ///    - to accept Powershell-convention arguments, <see cref="AllowPowershellConventions"/> must be enabled
+        ///  - paramfile arguments (`@/path/to/file`) may be added in addition to any other arguments!
+        /// </remarks>
+        public bool AllowParamFiles { get; set; } = false;
 
 
         /// <summary>
@@ -269,6 +299,13 @@ namespace getopt.net {
                 outOptArg = AppArgs[CurrentIndex];
                 m_currentIndex++;
                 return NonOptChar;
+            }
+
+            // Now check if the current argument is a paramfile argument
+            if (IsParamFileArg(AppArgs[CurrentIndex], out var paramFile) && paramFile is not null) {
+                ReadParamFile(new FileInfo(paramFile));
+                m_currentIndex++;
+                return GetNextOpt(out outOptArg); // We don't need to pass this back to the application. Instead just continue on
             }
 
             if (IsLongOption(AppArgs[m_currentIndex])) {
@@ -622,6 +659,48 @@ namespace getopt.net {
             return arg.Length > 1       &&
                    arg[0] == SingleDash &&
                    arg[1] != SingleDash;
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether or not a given option is a paramfile option.
+        /// <see cref="AllowParamFiles"/>.
+        /// </summary>
+        /// <remarks >
+        /// If <paramref name="arg"/> is a valid paramfile option, but the file doesn't exist, <paramref name="paramFile"/> will be set to <code>null</code>.
+        /// Otherwise, <paramref name="paramFile"/> will be set to the path to the file.
+        /// </remarks>
+        /// <param name="arg">The argument to check.</param>
+        /// <param name="paramFile">An out param containing either null or the path to the file.</param>
+        /// <returns><code>true</code> if the passed argument is a valid paramfile option. <code>false</code> otherwise.</returns>
+        protected bool IsParamFileArg(string arg, out string? paramFile) {
+            paramFile = null; // pre-set this so we don't have to do it everywhere
+            if (string.IsNullOrEmpty(arg) || !AllowParamFiles || arg.Length < 2) { return false; }
+
+            if (arg[0] != SingleAtSymbol) { return false; }
+
+            arg = arg.TrimStart('@');
+
+            if (File.Exists(arg)) {
+                paramFile = arg;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Reads the incoming param file and adds the contents to <see cref="AppArgs"/>
+        /// </summary>
+        /// <param name="paramFile">The file to read.</param>
+        protected void ReadParamFile(FileInfo paramFile) {
+            if (paramFile == null || !paramFile.Exists) { return; }
+
+            var lastIndex = AppArgs.Length;
+            var lines = File.ReadAllLines(paramFile.FullName);
+            Array.Resize(ref m_appArgs, lines.Length + AppArgs.Length);
+
+            for (int i = lastIndex, j = 0; i < m_appArgs.Length && j < lines.Length; i++, j++) {
+                m_appArgs[i] = lines[j];
+            }
         }
     }
 }

@@ -177,17 +177,6 @@ namespace getopt.net {
         /// </remarks>
         public bool AllowParamFiles { get; set; } = false;
 
-        /// <summary>
-        /// Gets or sets a value indicating whether or not Powershell-style arguments are allowed.
-        /// This option doesn't conflict with the GNU/POSIX or Windows-style argument parsing and is simply an addition.
-        /// </summary>
-        /// <remarks >
-        /// This option is disabled by default.
-        /// 
-        /// Powershell-style arguments are similar to GNU/POSIX long options, however they begin with a single dash (-).
-        /// </remarks>
-        public bool AllowPowershellConventions { get; set; } = false;
-
 
         /// <summary>
         /// Either enables or disabled exceptions entirely.

@@ -217,6 +217,7 @@
             ReadParamFile(new FileInfo(tmpFile));
             Assert.AreEqual(4, AppArgs.Length);
 
+            // NOTE: GetNextOpt calls ReadParamFile too! AppArgs will now contain double the amount of args written to the file :)
             char optChar = (char)GetNextOpt(out var optArg);
             Assert.AreEqual('t', optChar);
             Assert.IsNull(optArg);

@@ -19,7 +19,10 @@ Module Program
         Dim getopt = New GetOpt With {
             .AppArgs = args,
             .Options = _progOptions,
-            .ShortOpts = _progShortOptions
+            .ShortOpts = _progShortOptions,
+            .AllowParamFiles = True,
+            .AllowPowershellConventions = True,
+            .AllowWindowsConventions = True
         }
 
         Dim optChar = 0
@@ -76,14 +79,30 @@ Usage:
     myapp --file=/path/to/file
     myapp --file /path/to/file
 
+    myapp @/path/to/paramfile # load all args from param file
+
 Arguments:
-    --help,         -h      Displays this text and exits
-    --version,      -v      Displays the version and exits
-    --file=[file],  -f      Reads a file and outputs its contents
+    --help,     -h      Displays this menu and exits
+    /help,      /h      Displays this menu and exits (Windows conventions)
+    -help,      -h      Displays this menu and exits (Powershell conventions)
+
+    --version,  -v      Displays the version and exits
+    /version,   /v      Displays the version and exits (Windows conventions)
+    -version,   -v      Displays the version and exits (Powershell conventions)
+
+    --file=<>,  -f<>    Reads the file back to stdout.
+    --file <>,  -f<>    Reads the file back to stdout.
+    --file:<>,  -f<>    Reads the file back to stdout. (Windows arg conventions)
+    /file=<>,   /f<>    Reads the file back to stdout. (Windows opt and GNU/POSIX arg conventions)
+    /file <>,   /f<>    Reads the file back to stdout. (Windows opt and GNU/POSIX arg conventions)
+    /file:<>,   /f<>    Reads the file back to stdout. (Windows conventions)
+    -file=<>,   -f<>    Reads the file back to stdout. (Powershell opt and GNU/POSIX arg conventions)
+    -file <>,   -f<>    Reads the file back to stdout. (Powershell opt and GNU/POSIX arg conventions)
+    -file:<>,   -f<>    Reads the file back to stdout. (Powershell opt and Windows arg conventions)
         ")
     End Sub
 
     Sub PrintVersion()
-        Console.WriteLine("myapp (VB) v1.0.0")
+        Console.WriteLine("myapp (VB) v0.8.0")
     End Sub
 End Module

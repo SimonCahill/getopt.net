@@ -303,6 +303,7 @@ namespace getopt.net {
             // Now check if the current argument is a paramfile argument
             if (IsParamFileArg(AppArgs[CurrentIndex], out var paramFile)) {
                 ReadParamFile(new FileInfo(paramFile));
+                m_currentIndex++;
                 return GetNextOpt(out outOptArg); // We don't need to pass this back to the application. Instead just continue on
             }
 
@@ -688,7 +689,7 @@ namespace getopt.net {
         protected void ReadParamFile(FileInfo paramFile) {
             if (paramFile == null || !paramFile.Exists) { return; }
 
-            var lastIndex = AppArgs.Length - 1;
+            var lastIndex = AppArgs.Length;
             var lines = File.ReadAllLines(paramFile.FullName);
             Array.Resize(ref m_appArgs, lines.Length + AppArgs.Length);
 

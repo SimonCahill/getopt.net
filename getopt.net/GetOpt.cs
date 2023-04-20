@@ -301,7 +301,7 @@ namespace getopt.net {
             }
 
             // Now check if the current argument is a paramfile argument
-            if (IsParamFileArg(AppArgs[CurrentIndex], out var paramFile)) {
+            if (IsParamFileArg(AppArgs[CurrentIndex], out var paramFile) && paramFile is not null) {
                 ReadParamFile(new FileInfo(paramFile));
                 m_currentIndex++;
                 return GetNextOpt(out outOptArg); // We don't need to pass this back to the application. Instead just continue on
@@ -686,6 +686,10 @@ namespace getopt.net {
             return true;
         }
 
+        /// <summary>
+        /// Reads the incoming param file and adds the contents to <see cref="AppArgs"/>
+        /// </summary>
+        /// <param name="paramFile">The file to read.</param>
         protected void ReadParamFile(FileInfo paramFile) {
             if (paramFile == null || !paramFile.Exists) { return; }
 

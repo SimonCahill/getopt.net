@@ -1,4 +1,8 @@
-﻿namespace getopt.net.reference.cs {
+﻿using System;
+
+namespace getopt.net.reference.cs {
+
+    using System.IO;
 
     internal class Program {
 

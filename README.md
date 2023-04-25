@@ -77,6 +77,12 @@ If none of the above is present after a character in `ShortOpts`, then **no argu
 getopt.ShortOpts = "abC:dE:f:GhIjkLmnop:q:r;";
 ```
 
+#### POSIXly correct behaviour
+If `getopt.ShortOpts` is prefixed by a `+`, or the environment variable `POSIXLY_CORRECT` is set, then getopt.net will stop processing more options as soon when the first non-option string is found.
+
+If `getopt.ShortOpts` is prefixed by a `-`, then each non-option string will be treated as if it were the argument to an option with the value `1`.
+
+
 ### Customisation is available with long opts:
 ```csharp
 getopt.Options = new[] {
@@ -103,7 +109,7 @@ The exceptions *do* contain more info, however.
 
 For a more detailled description of using getopt.net, please consult the Wiki.
 
-## Basic usage in C#
+## Basic usage in C♯
 
 ```csharp
 

@@ -13,12 +13,20 @@ namespace getopt.net {
         public Option() { }
 
         /// <summary>
-        /// Constructs a new instance of this struct.
+        /// Constructs a new instance of this struct with a <see cref="char"/> as the value type.
         /// </summary>
         /// <param name="name">The name of the argument.</param>
         /// <param name="argType">The argument type.</param>
         /// <param name="value">The value of the option.</param>
-        public Option(string name, ArgumentType argType, char value) {
+        public Option(string name, ArgumentType argType, char value): this(name, argType, (int)value) { }
+
+        /// <summary>
+        /// Constructs a new instance of this struct with an <see cref="int"/> as the value type.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="argType"></param>
+        /// <param name="value"></param>
+        public Option(string name, ArgumentType argType, int value) {
             Name = name;
             ArgumentType = argType;
             Value = value;

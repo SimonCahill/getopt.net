@@ -581,5 +581,24 @@ namespace getopt.net.tests {
             Assert.AreEqual(testArg, optArg);
         }
 
+        [TestMethod]
+        public void TestOptionsWithLongerIntValues() {
+            var getopt = new GetOpt {
+                AppArgs = new[] { "--long-one", "--long-two" },
+                Options = new[] {
+                    new Option("long-one", ArgumentType.None, 0xbada55),
+                    new Option("long-two", ArgumentType.None, 0xdeada55)
+                }
+            };
+
+            var optChar = getopt.GetNextOpt(out var optArg);
+            Assert.AreEqual(0xbada55, optChar);
+            Assert.IsNull(optArg);
+
+            optChar = getopt.GetNextOpt(out optArg);
+            Assert.AreEqual(0xdeada55, optChar);
+            Assert.IsNull(optArg);
+        }
+
     }
 }

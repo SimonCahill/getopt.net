@@ -1,5 +1,12 @@
 # getop.net changelog
 
+# v0.8.1
+Version 0.8.1 introduces a non-breaking change which allows for more than 255 possible values for long options.
+
+## Changes
+ - Option struct now contains an Int32 for its Value property
+    - An override constructor was added to allow for backwards-compatiblity.
+
 # v0.8.0
 
 Version 0.8.0 introduces a non-breaking change which enables support for paramfiles!

@@ -53,6 +53,10 @@ There are several methods of installing and using getopt.net in your project.
  - `-myoption:argument` (AllowWindowsConvention must also be enabled!)
  - `-myoption argument`
  - `-myoption` `argument`
+ - `-s`
+ - `-S value`
+ - `-S` `value`
+ - `tMxSvalue`
 
 ### Support for paramfiles
 

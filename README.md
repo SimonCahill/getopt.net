@@ -56,7 +56,7 @@ There are several methods of installing and using getopt.net in your project.
  - `-s`
  - `-S value`
  - `-S` `value`
- - `tMxSvalue`
+ - `-tMxSvalue`
 
 ### Support for paramfiles
 

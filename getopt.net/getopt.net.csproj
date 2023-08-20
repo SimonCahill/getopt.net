@@ -48,6 +48,9 @@ Changes
     <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <ItemGroup>
+    <None Remove="enums\" />
+  </ItemGroup>
+  <ItemGroup>
     <None Include="..\.editorconfig" Link=".editorconfig" />
     <None Include="..\LICENSE">
       <Pack>True</Pack>
@@ -68,4 +71,7 @@ Changes
     <Using Include="System.Linq" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="enums\" />
+  </ItemGroup>
 </Project>

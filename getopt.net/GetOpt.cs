@@ -702,6 +702,13 @@ namespace getopt.net {
                 m_appArgs[i] = lines[j];
             }
         }
+    
+        /// <summary>
+        /// Gets a <see cref="DescriptionGenerator"/> object with all currently configured <see cref="Options"/>
+        /// </summary>
+        /// <returns>A new <see cref="DescriptionGenerator"/> instance.</returns>
+        public DescriptionGenerator GetDescriptionGenerator() => new DescriptionGenerator(Options);
     }
+
 }
 

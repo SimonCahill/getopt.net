@@ -18,18 +18,21 @@ namespace getopt.net {
         /// <param name="name">The name of the argument.</param>
         /// <param name="argType">The argument type.</param>
         /// <param name="value">The value of the option.</param>
-        public Option(string name, ArgumentType argType, char value): this(name, argType, (int)value) { }
+        /// <param name="description" >A brief description of the parameter.</param>
+        public Option(string name, ArgumentType argType, char value, string? description = null): this(name, argType, (int)value, description) { }
 
         /// <summary>
         /// Constructs a new instance of this struct with an <see cref="int"/> as the value type.
         /// </summary>
-        /// <param name="name"></param>
-        /// <param name="argType"></param>
-        /// <param name="value"></param>
-        public Option(string name, ArgumentType argType, int value) {
+        /// <param name="name">The name of the argument.</param>
+        /// <param name="argType">The argument type.</param>
+        /// <param name="value">The value of the option.</param>
+        /// <param name="description" >A brief description of the parameter.</param>
+        public Option(string name, ArgumentType argType, int value, string? description = null) {
             Name = name;
             ArgumentType = argType;
             Value = value;
+            Description = description;
         }
 
         /// <summary>
@@ -52,6 +55,15 @@ namespace getopt.net {
         /// The value (short opt) for the option.
         /// </summary>
         public int Value { get; set; }
+
+        /// <summary>
+        /// Gets or sets the description for this option.
+        /// </summary>
+        /// This property can be used by the <see cref="DescriptionGenerator"/> to generate automatic descriptions for your
+        /// application.
+        /// 
+        /// <value>The description for this option.</value>
+        public string? Description { get; set; }
 
     }
 }

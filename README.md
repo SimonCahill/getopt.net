@@ -29,34 +29,59 @@ There are several methods of installing and using getopt.net in your project.
 
 ### Full support for getopt-like command-line options
 
- - `--long-opts`
- - `--long-opts=with_options`
- - `--long-opts with_options`
- - `-ShortOpTs`
- - `-ShortsWithOpTi0n5`
- - `-s with_opts`
+**Separate options**
+
+ - `--help`
+    - `-h`
+ - `--config=/path/to/config` POSIX separator
+    - `--config /path/to/config` GNU separator
+    - `-c /path/to/config` POSIX separator
+    - `-c/path/to/config` GNU extension
+
+**Compound options**
+ - `--console, -C`
+ - `--test, -t`
+ - `--config, -c`
+ - `-Ctc/path/to/config` Options with *required* or *optional* arguments go last!
 
 ### Support for options using the Windows convention
 
- - `/h` (short opts)
- - `/long-opts`
- - `/hxcfsdf` (GNU-style short opts!)
- - `/long-opts:with-win-style-args`
- - `/long-opts with-args-separated-by-space`
- - `/long-opts=with-posix-separator`
- - `/fmyfile` (short opts with parameters!)
+> **NOTE**: It is possible to use the Windows argument separator (`:`) with **all** conventions.  
+> To enable this, you must set `AllowWindowsConventions` to `true`.
+
+**Separate options**
+
+ - `/help`
+    - `/h`
+ - `/config=/path/to/config` POSIX separator
+    - `/config /path/to/config` GNU separator
+    - `/config:/path/to/config` Windows separator
+    - `/c /path/to/config` POSIX separator
+    - `/c/path/to/config` GNU extension
+
+**Compound options**
+ - `/console, /C`
+ - `/test, /t`
+ - `/config, /c`
+ - `/Ctc/path/to/config` Options with *required* or *optional* arguments go last!
 
 ### Support for Powershell-style options
 
- - `-myoption`
- - `-myoption=argument`
- - `-myoption:argument` (AllowWindowsConvention must also be enabled!)
- - `-myoption argument`
- - `-myoption` `argument`
- - `-s`
- - `-S value`
- - `-S` `value`
- - `-tMxSvalue`
+**Separate options**
+
+ - `-help`
+    - `-h`
+ - `-config=/path/to/config` POSIX separator
+    - `-config /path/to/config` GNU separator
+    - `-config:/path/to/config` Windows separator
+    - `-c /path/to/config` POSIX separator
+    - `-c/path/to/config` GNU extension
+
+**Compound options**
+ - `-console, -C`
+ - `-test, -t`
+ - `-config, -c`
+ - `-Ctc/path/to/config` Options with *required* or *optional* arguments go last!
 
 ### Support for paramfiles
 

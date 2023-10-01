@@ -22,7 +22,7 @@ GitHub: https://github.com/SimonCahill/getopt.net</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <!--<ApplicationIcon >../img/getopt.net-icon.ico</ApplicationIcon>-->
-    <Version>0.8.1</Version>
+    <Version>0.9.0</Version>
     <PackageTags>getopt; getopt.net; argument-parsing; parser; arguments; options; getopt_long; options; command-line; cross-platform; linux; macos; windows</PackageTags>
     <PackageReleaseNotes>
 v0.9.0

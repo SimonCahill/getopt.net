@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net6.0;net7.0;net46;</TargetFrameworks>
+    <TargetFrameworks>net6.0;net7.0;net46</TargetFrameworks>
     <ImplicitUsings>disable</ImplicitUsings>
     <LangVersion>11</LangVersion>
     <Nullable>enable</Nullable>
@@ -25,12 +25,13 @@ GitHub: https://github.com/SimonCahill/getopt.net</Description>
     <Version>0.8.1</Version>
     <PackageTags>getopt; getopt.net; argument-parsing; parser; arguments; options; getopt_long; options; command-line; cross-platform; linux; macos; windows</PackageTags>
     <PackageReleaseNotes>
-v0.8.1
-Version 0.8.1 introduces a non-breaking change which allows for more than 255 possible values for long options.
+v0.9.0
+Version 0.9.0 introduces a non-breaking change which fixes a bug in paramfiles.
 
 Changes
- - Option struct now contains an Int32 for its Value property
-    - An override constructor was added to allow for backwards-compatiblity.
+ - Paramfiles now support comments.
+ - Comments are only supported at the beginning of lines
+ - Comments are denoted by a preceeding `#`
     </PackageReleaseNotes>
     <Title>getopt.net</Title>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>

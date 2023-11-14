@@ -4,9 +4,9 @@ This repository contains the code for my port of the GNU getopt functionality fo
 
 getopt.net is written entirely in C# and is a "cleanroom port"; although not necessary it made the project that much more fun :)
 
-<p align="center" >
-    <img align="center" src="https://raw.githubusercontent.com/SimonCahill/getopt.net/master/img/getopt.net-logo-128.png" alt="getopt.net-logo" >
-</p>
+
+![getopt.net logo](https://raw.githubusercontent.com/SimonCahill/getopt.net/master/img/getopt.net-logo-1280x128.png)
+
 
 ![Build Workflow](https://github.com/SimonCahill/getopt.net/actions/workflows/build.yaml/badge.svg)
 ![Test Workflow](https://github.com/SimonCahill/getopt.net/actions/workflows/run-tests.yaml/badge.svg)
@@ -29,34 +29,59 @@ There are several methods of installing and using getopt.net in your project.
 
 ### Full support for getopt-like command-line options
 
- - `--long-opts`
- - `--long-opts=with_options`
- - `--long-opts with_options`
- - `-ShortOpTs`
- - `-ShortsWithOpTi0n5`
- - `-s with_opts`
+**Separate options**
+
+ - `--help`
+    - `-h`
+ - `--config=/path/to/config` POSIX separator
+    - `--config /path/to/config` GNU separator
+    - `-c /path/to/config` POSIX separator
+    - `-c/path/to/config` GNU extension
+
+**Compound options**
+ - `--console, -C`
+ - `--test, -t`
+ - `--config, -c`
+ - `-Ctc/path/to/config` Options with *required* or *optional* arguments go last!
 
 ### Support for options using the Windows convention
 
- - `/h` (short opts)
- - `/long-opts`
- - `/hxcfsdf` (GNU-style short opts!)
- - `/long-opts:with-win-style-args`
- - `/long-opts with-args-separated-by-space`
- - `/long-opts=with-posix-separator`
- - `/fmyfile` (short opts with parameters!)
+> **NOTE**: It is possible to use the Windows argument separator (`:`) with **all** conventions.  
+> To enable this, you must set `AllowWindowsConventions` to `true`.
+
+**Separate options**
+
+ - `/help`
+    - `/h`
+ - `/config=/path/to/config` POSIX separator
+    - `/config /path/to/config` GNU separator
+    - `/config:/path/to/config` Windows separator
+    - `/c /path/to/config` POSIX separator
+    - `/c/path/to/config` GNU extension
+
+**Compound options**
+ - `/console, /C`
+ - `/test, /t`
+ - `/config, /c`
+ - `/Ctc/path/to/config` Options with *required* or *optional* arguments go last!
 
 ### Support for Powershell-style options
 
- - `-myoption`
- - `-myoption=argument`
- - `-myoption:argument` (AllowWindowsConvention must also be enabled!)
- - `-myoption argument`
- - `-myoption` `argument`
- - `-s`
- - `-S value`
- - `-S` `value`
- - `tMxSvalue`
+**Separate options**
+
+ - `-help`
+    - `-h`
+ - `-config=/path/to/config` POSIX separator
+    - `-config /path/to/config` GNU separator
+    - `-config:/path/to/config` Windows separator
+    - `-c /path/to/config` POSIX separator
+    - `-c/path/to/config` GNU extension
+
+**Compound options**
+ - `-console, -C`
+ - `-test, -t`
+ - `-config, -c`
+ - `-Ctc/path/to/config` Options with *required* or *optional* arguments go last!
 
 ### Support for paramfiles
 

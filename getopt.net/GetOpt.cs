@@ -699,7 +699,11 @@ namespace getopt.net {
             Array.Resize(ref m_appArgs, lines.Length + AppArgs.Length);
 
             for (int i = lastIndex, j = 0; i < m_appArgs.Length && j < lines.Length; i++, j++) {
+<<<<<<< HEAD
                 if (string.IsNullOrEmpty(lines[j]) || string.IsNullOrWhitespace(lines[j])) { continue; }
+=======
+                if (string.IsNullOrEmpty(lines[j].Trim())) { continue; }
+>>>>>>> 70904e216c8d7200d63d19d6f2a18ce61fadc106
                 if (lines[j].Trim()[0] == '#') { continue; }
 
                 m_appArgs[i] = lines[j];

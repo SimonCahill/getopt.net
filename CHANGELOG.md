@@ -1,5 +1,13 @@
 # getop.net changelog
 
+# v0.9.0
+Version 0.9.0 introduces a non-breaking change which fixes a bug in paramfiles.
+
+Changes
+ - Paramfiles now support comments.
+ - Comments are only supported at the beginning of lines
+ - Comments are denoted by a preceeding `#`
+
 # v0.8.1
 Version 0.8.1 introduces a non-breaking change which allows for more than 255 possible values for long options.
 

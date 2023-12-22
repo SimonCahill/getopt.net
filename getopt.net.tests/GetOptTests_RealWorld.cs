@@ -600,5 +600,32 @@ namespace getopt.net.tests {
             Assert.IsNull(optArg);
         }
 
+        [TestMethod]
+        public void TestConvertLongOptsToShortOpts() {
+            var longOpts = new Option[] {
+                new Option("version", ArgumentType.None, 'v'),
+                new Option("help", ArgumentType.None, 'h'),
+                new Option("config", ArgumentType.Required, 'c'),
+                new Option("working-dir", ArgumentType.Optional, 'w'),
+                new Option("console", ArgumentType.None, 'C')
+            };
+
+            var shortOpts = longOpts.ToShortOptString();
+
+            Assert.IsNotNull(shortOpts);
+            Assert.IsFalse(shortOpts?.Length == 0);
+            Assert.IsTrue(shortOpts?.Length == 7);
+            Assert.AreEqual(shortOpts, "vhc:w;C");
+        }
+
+        [TestMethod]
+        public void TestConvertLongOptsToShortOptsWithFailure() {
+            var emptyLongOpts = new Option[] {};
+            var nullLongOpts = default(Option[]);
+
+            Assert.IsNull(Extensions.ToShortOptString(emptyLongOpts));
+            Assert.IsNull(Extensions.ToShortOptString(nullLongOpts));
+        }
+
     }
 }

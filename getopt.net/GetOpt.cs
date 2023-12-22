@@ -328,6 +328,30 @@ namespace getopt.net {
         }
 
         /// <summary>
+        /// Gets the next option in the list, returning an object containing more detailled information about the option.
+        /// </summary>
+        /// <returns>An instance of <see cref="CommandOption"/> containing more detailled information about the option and argument (if applicable).</returns>
+        public CommandOption GetNextOpt() {
+            var optChar = GetNextOpt(out var optArg);
+
+            if (optArg is null) {
+                return new CommandOption(optChar);
+            }
+
+            if (bool.TryParse(optArg, out bool outBool)) {
+                return new CommandOption(optChar, outBool);
+            } else if (double.TryParse(optArg, out double outDouble)) {
+                return new CommandOption(optChar, outDouble);
+            } else if (float.TryParse(optArg, out float outFloat)) {
+                return new CommandOption(optChar, outFloat);
+            } else if (int.TryParse(optArg, out int outInt)) {
+                return new CommandOption(optChar, outInt);
+            }
+
+            return new CommandOption(optChar, optArg);
+        }
+
+        /// <summary>
         /// Parses long options
         /// </summary>
         /// <param name="optArg">Out var; the option's argument (if applicable)</param>

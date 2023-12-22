@@ -1,9 +1,16 @@
 # getop.net changelog
 
+# v0.9.1
+Version 0.9.1 introduces a non-breaking change which allows creating a shortopt string from an array of long options.
+
+## Changes
+ - Added extension method Option[].ToShortOptString()
+ - Updated tests
+
 # v0.9.0
 Version 0.9.0 introduces a non-breaking change which fixes a bug in paramfiles.
 
-Changes
+## Changes
  - Paramfiles now support comments.
  - Comments are only supported at the beginning of lines
  - Comments are denoted by a preceeding `#`

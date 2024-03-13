@@ -22,6 +22,7 @@ There are several methods of installing and using getopt.net in your project.
 
 1. Add the repository as a submodule, checkout a tag and include it as a project reference in your solution
 2. Use the NuGet package manager: `install-package getopt.net-bsd` Note the `-bsd` ending which shows the license used and **not** system requirements! getopt.net was already in use :(
+3. Use the dotnet command-line tools: `dotnet add package getopt.net-bsd`
 
 [NuGet page](https://www.nuget.org/packages/getopt.net-bsd/)
 

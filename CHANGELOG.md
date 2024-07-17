@@ -1,5 +1,12 @@
 # getop.net changelog
 
+# v1.0.0
+Version 1.0.0 introduces a non-breaking feature; the dynamic creation of help menus.
+
+## Changes
+ - getopt.net now generates a dynamic help text.
+    - Added customisable extension method which can be used to dynamically generate help texts.
+
 # v0.9.1
 Version 0.9.1 introduces a non-breaking change which allows creating a shortopt string from an array of long options.
 

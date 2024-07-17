@@ -135,6 +135,69 @@ If `IgnoreMissingArguments` is enabled, forgetting to add a **required** argumen
 
 The exceptions *do* contain more info, however.
 
+### Help text generation
+getopt.net can generate a help text for you, by simply calling `getopt.GenerateHelpText()`.
+
+The behaviour of the help text generator can be customised to suit your needs.
+By default, getopt.net will not output application name, version or copyright information. This must be provided with the `HelpTextConfig` object.
+
+If no application name is provided, getopt.net will attempt to read the application name from the Assembly.  
+Should this fail, getopt.net will identify your program as `unknown`.
+
+The default configuration outputs options and switches using the GNU/POSIX convention and **doesn't** print the conventions supported by your application.
+
+Here's an example:
+
+```cs
+var getopt = new GetOpt {
+    AppArgs = args,
+    Options = new[] {
+        new Option("help",      ArgumentType.None,      'h', "Displays this help text."),
+        new Option("version",   ArgumentType.None,      'v', "Displays the version of this program."),
+        new Option("file",      ArgumentType.Required,  'f', "Reads the file back to stdout. The file is read into a local buffer and then printed out. Also I created this really long description to show that getopt.net can handle long descriptions."),
+    },
+    ShortOpts = "hvf:t;", // the last option isn't an error!
+    AllowParamFiles = true,
+    AllowWindowsConventions = true,
+    AllowPowershellConventions = true
+};
+
+static void PrintHelp(GetOpt getopt) {
+    Console.WriteLine(getopt.GenerateHelpText(new HelpTextConfig {
+        ApplicationName = "getopt.net reference",
+        ApplicationVersion = "v1.0.0",
+        FooterText = "This is a reference implementation of getopt.net in C#.",
+        OptionConvention = OptionConvention.GnuPosix, // Change me to different conventions
+        ShowSupportedConventions = true // I'm false by default, but enabling me shows which conventions your app supports
+    }));
+}
+```
+
+produces the following output:
+
+```
+getopt.net reference v1.0.0
+
+Usage:
+        getopt.net reference [options]
+
+Supported option conventions:
+    Windows (/): yes
+    Powershell (-): yes
+    Gnu/Posix (-, --): yes
+
+Switches:
+        -h, --help      Displays this help text.
+        -v, --version   Displays the version of this program.
+
+Options:
+                        Reads the file back to stdout. The file is read into a local buffer and then printed out. Also I created this really long description to show
+        -f, --file      that getopt.net can handle long descriptions.
+
+
+This is a reference implementation of getopt.net in C#.
+```
+
 # Usage:
 
 For a more detailled description of using getopt.net, please consult the Wiki.
@@ -168,7 +231,9 @@ static void Main(string[] args) {
             case 'h':
                 // print help or something
                 break;
-            //
+            case 'c':
+                // do something with optArg
+                break;
         }
     }
 }
@@ -176,7 +241,7 @@ static void Main(string[] args) {
 
 ## Basic usage in VB.Net
 
-```vbnet
+```vb
 Imports getopt.net
 
 module Program

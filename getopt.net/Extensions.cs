@@ -105,8 +105,12 @@ namespace getopt.net {
             var sBuilder = new StringBuilder();
 
             if (!string.IsNullOrEmpty(config.ApplicationName) && !string.IsNullOrEmpty(config.ApplicationVersion)) {
-                sBuilder.AppendLine($"{config.ApplicationName} {config.ApplicationVersion}");
-                sBuilder.AppendLine();
+                sBuilder.Append($"{config.ApplicationName} {config.ApplicationVersion}");
+                if (config.CopyrightDate is not null && !string.IsNullOrEmpty(config.CopyrightHolder)) {
+                    sBuilder.Append($" © {config.CopyrightDate.Value.Year} {config.CopyrightHolder}");
+                }
+                sBuilder.AppendLine()
+                        .AppendLine();
             }
 
             string shortOptPrefix = config.OptionConvention == OptionConvention.Windows ? "/" : "-";

@@ -177,7 +177,6 @@ namespace getopt.net {
         /// </remarks>
         public bool AllowParamFiles { get; set; } = false;
 
-
         /// <summary>
         /// Either enables or disabled exceptions entirely.
         /// For more specific control over exceptions, see the other options provided by GetOpt.

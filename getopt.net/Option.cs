@@ -18,18 +18,21 @@ namespace getopt.net {
         /// <param name="name">The name of the argument.</param>
         /// <param name="argType">The argument type.</param>
         /// <param name="value">The value of the option.</param>
-        public Option(string name, ArgumentType argType, char value): this(name, argType, (int)value) { }
+        /// <param name="description">The description of the option.</param>
+        public Option(string name, ArgumentType argType, char value, string description = ""): this(name, argType, (int)value, description) {}
 
         /// <summary>
         /// Constructs a new instance of this struct with an <see cref="int"/> as the value type.
         /// </summary>
-        /// <param name="name"></param>
-        /// <param name="argType"></param>
-        /// <param name="value"></param>
-        public Option(string name, ArgumentType argType, int value) {
+        /// <param name="name">The name of the argument.</param>
+        /// <param name="argType">The argument type.</param>
+        /// <param name="value">The value of the option.</param>
+        /// <param name="description">The description of the option.</param>
+        public Option(string name, ArgumentType argType, int value, string description = "") {
             Name = name;
             ArgumentType = argType;
             Value = value;
+            Description = description;
         }
 
         /// <summary>
@@ -52,6 +55,11 @@ namespace getopt.net {
         /// The value (short opt) for the option.
         /// </summary>
         public int Value { get; set; }
+
+        /// <summary>
+        /// The description of the option.
+        /// </summary>
+        public string? Description { get; set; }
 
     }
 }

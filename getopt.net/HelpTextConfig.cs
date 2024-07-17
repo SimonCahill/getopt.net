@@ -15,7 +15,7 @@ namespace getopt.net {
         /// <summary>
         /// The maximum width of the help text.
         /// </summary>
-        public int MaxWidth { get; set; } = 160;
+        public int MaxWidth { get; set; } = 100;
 
         /// <summary>
         /// The option convention to use.

@@ -38,6 +38,16 @@ namespace getopt.net {
         public string? FooterText { get; set; }
 
         /// <summary>
+        /// The date of the copyright.
+        /// </summary>
+        public DateTime? CopyrightDate { get; set; }
+
+        /// <summary>
+        /// The holder of the copyright.
+        /// </summary>
+        public string? CopyrightHolder { get; set; }
+
+        /// <summary>
         /// Gets a default configuration.
         /// </summary>
         public static HelpTextConfig Default => GnuConfig();

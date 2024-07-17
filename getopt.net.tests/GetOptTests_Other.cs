@@ -63,6 +63,21 @@ namespace getopt.net.tests {
             Assert.IsFalse(getopt.IgnoreInvalidOptions);
         }
 
+        public void TestHelpGeneration() {
+            var getopt = new GetOpt {
+                Options = new Option[] {
+                    new Option("help", ArgumentType.None, 'h', "Displays this help text."),
+                    new Option("version", ArgumentType.None, 'v', "Displays the version of this program.")
+                }
+            };
+
+            var helpText = getopt.GenerateHelpText();
+            Console.WriteLine(helpText);
+            Assert.IsNotNull(helpText);
+            Assert.IsTrue(helpText.Contains("help"));
+            Assert.IsTrue(helpText.Contains("version"));
+        }
+
     }
 
 }

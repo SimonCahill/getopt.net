@@ -61,7 +61,9 @@ namespace getopt.net.reference.cs {
                 ApplicationVersion = "v1.0.0",
                 FooterText = "This is a reference implementation of getopt.net in C#.",
                 OptionConvention = OptionConvention.GnuPosix,
-                ShowSupportedConventions = true
+                ShowSupportedConventions = true,
+                CopyrightDate = new DateTime(2023, 1, 1),
+                CopyrightHolder = "Simon Cahill (contact@simonc.eu)"
             }));
         }
 

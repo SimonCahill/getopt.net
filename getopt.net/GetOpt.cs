@@ -285,14 +285,14 @@ namespace getopt.net {
             if (string.IsNullOrEmpty(AppArgs[m_currentIndex])) {
                 if (!IgnoreEmptyOptions) {
                     throw new ParseException("Encountered null or empty argument!");
-                } else { return 0; }
+                } else { return -1; }
             } else if (DoubleDashStopsParsing && AppArgs[CurrentIndex].Equals(DoubleDash, StringComparison.InvariantCultureIgnoreCase)) {
                 m_currentIndex++;
                 StopParsingOptions = true;
                 return GetNextOpt(out outOptArg);
             }
 
-            // Check here if StopParsingOptions is true;
+            // Check here if StopParsingOptions is true
             // if so, then simply return NonOptChar and set outOptArg to the value of the argument
             if (StopParsingOptions) {
                 outOptArg = AppArgs[CurrentIndex];
@@ -374,6 +374,7 @@ namespace getopt.net {
                     throw new ParseException(AppArgs[m_currentIndex], "Invalid option found!");
                 }
 
+                optArg = AppArgs[m_currentIndex];
                 return InvalidOptChar;
             }
 
@@ -397,16 +398,15 @@ namespace getopt.net {
 
                     ++m_currentIndex;
                     break;
-                case ArgumentType.None:
-                default: // this case will handle cases where developers carelessly cast integers to the enum type
-                    optArg = null;
-                    break;
                 case ArgumentType.Optional:
                     // DRY this off at some point
                     if (optArg == null && !IsLongOption(AppArgs[CurrentIndex + 1]) && !IsShortOption(AppArgs[CurrentIndex + 1])) {
                         optArg = AppArgs[CurrentIndex + 1];
                         ++m_currentIndex;
                     }
+                    break;
+                default: // this case will handle cases where developers carelessly cast integers to the enum type
+                    optArg = null;
                     break;
             }
 
@@ -469,7 +469,6 @@ namespace getopt.net {
             } else if (argType is ArgumentType type) {
                 switch (type) {
                     default:
-                    case ArgumentType.None:
                         if (AppArgs[CurrentIndex].Length > AppArgs[CurrentIndex].IndexOf(curOpt) + 1) {
                             m_optPosition++;
                             return curOpt;
@@ -505,7 +504,7 @@ namespace getopt.net {
         /// <returns><code >true</code> if the short opt requires an argument.</returns>
         /// <exception cref="ParseException">If ignoring errors is disabled (default) and an error occurs during parsing.</exception>
         protected ArgumentType? ShortOptRequiresArg(char shortOpt) {
-            if (!string.IsNullOrEmpty(ShortOpts) && ShortOpts is not null) {
+            if (ShortOpts is not null && !string.IsNullOrEmpty(ShortOpts)) {
                 var posInStr = ShortOpts.IndexOf(shortOpt);
                 if (posInStr == -1) {
                     goto CheckLongOpt;
@@ -545,7 +544,6 @@ namespace getopt.net {
 
             if (nullableOpt == null) {
                 if (IgnoreInvalidOptions) {
-                    shortOpt = InvalidOptChar;
                     return ArgumentType.None;
                 } else { throw new ParseException(shortOpt.ToString(), "Encountered unknown option!"); }
             }
@@ -562,7 +560,7 @@ namespace getopt.net {
         /// <returns><code >true</code> if the option contains its argument. <code >false</code> otherwise.</returns>
         protected bool HasArgumentInOption(out string optName, out string? argVal) {
             var curArg = AppArgs[CurrentIndex];
-            var splitString = Array.Empty<string>();
+            var splitString = default(string[]);
 
             if (AllowWindowsConventions) {
                 // if we're allowing Windows conventions, we have to replace
@@ -625,7 +623,7 @@ namespace getopt.net {
         /// </summary>
         /// <param name="arg">The arg to check</param>
         /// <returns><code>true</code> if the parser shall stop parsing. <code >false</code> otherwise.</returns>
-        protected bool ShallStopParsing(ref string arg) {
+        protected static bool ShallStopParsing(ref string arg) {
             return !string.IsNullOrEmpty(arg) &&
                    arg.Equals("--", StringComparison.CurrentCultureIgnoreCase);
         }
@@ -643,7 +641,7 @@ namespace getopt.net {
                 arg.Length > 1          &&
                 arg[0] == SingleSlash   &&
                 Options.Length != 0     &&
-                Options.Any(o => o.Name == arg.Split(WinArgSeparator, GnuArgSeparator, ' ').First().Substring(1)) // We only need this option when parsing options following Windows' conventions
+                Options.Any(o => o.Name == arg.Split(WinArgSeparator, GnuArgSeparator, ' ')[0].Substring(1)) // We only need this option when parsing options following Windows' conventions
             ) { return true; }
 
             // Check for Powershell-style arguments.
@@ -655,7 +653,7 @@ namespace getopt.net {
                 arg.Length > 1              &&
                 arg[0] == SingleDash        &&
                 Options.Length != 0         &&
-                Options.Any(o => o.Name == arg.Split(WinArgSeparator, GnuArgSeparator, ' ').First().Substring(1)) // We only need this when parsing options following Powershell's conventions
+                Options.Any(o => o.Name == arg.Split(WinArgSeparator, GnuArgSeparator, ' ')[0].Substring(1)) // We only need this when parsing options following Powershell's conventions
                 // This parsing method is really similar to Windows option parsing...
             ) { return true; }
 

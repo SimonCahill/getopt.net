@@ -623,8 +623,34 @@ namespace getopt.net.tests {
             var emptyLongOpts = new Option[] {};
             var nullLongOpts = default(Option[]);
 
-            Assert.IsNull(Extensions.ToShortOptString(emptyLongOpts));
-            Assert.IsNull(Extensions.ToShortOptString(nullLongOpts));
+            Assert.IsNotNull(Extensions.ToShortOptString(emptyLongOpts));
+            Assert.IsTrue(string.IsNullOrEmpty(Extensions.ToShortOptString(emptyLongOpts)));
+            Assert.IsNotNull(Extensions.ToShortOptString(nullLongOpts));
+            Assert.IsTrue(string.IsNullOrEmpty(Extensions.ToShortOptString(emptyLongOpts)));
+        }
+
+        [TestMethod]
+        public void TestSupportForNonOptions() {
+            var getopt = new GetOpt {
+                AppArgs = new[] { "filename.txt", "--long-one", "--long-two" },
+                Options = new[] {
+                    new Option("long-one", ArgumentType.None, '1'),
+                    new Option("long-two", ArgumentType.None, '2')
+                },
+                ShortOpts = "-12"
+            };
+
+            var optChar = getopt.GetNextOpt(out var optArg);
+            Assert.AreEqual(GetOpt.NonOptChar, optChar);
+            Assert.AreEqual("filename.txt", optArg);
+
+            optChar = getopt.GetNextOpt(out optArg);
+            Assert.AreEqual('1', optChar);
+            Assert.IsNull(optArg);
+
+            optChar = getopt.GetNextOpt(out optArg);
+            Assert.AreEqual('2', optChar);
+            Assert.IsNull(optArg);
         }
 
     }

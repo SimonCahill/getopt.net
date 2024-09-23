@@ -1,5 +1,20 @@
 # getop.net changelog
 
+# v1.0.1
+Version 1.0.1 introduces non-breaking bug fixes and improvements to the library.
+
+## Changes
+ - Shortopt string generation now supports prefixes (`+` and `-`). See `ToShortOptString()`
+ - Shortopt string generation now no longer returns a nullable string
+ - Help text generation is significantly improved:
+    - Long descriptions now correctly align
+    - Descriptions align correctly now
+    - Alignments are now done with spaces instead of tabs
+ - If a missing argument is detected, `optArg` is set to the value of the option currently being parsed
+ - Removed redundant code/tidied code up *slightly*
+ - Added/fixed tests
+ - Removed support for legacy dotnet versions. **.net framework is NOT affected!**
+
 # v1.0.0
 Version 1.0.0 introduces a non-breaking feature; the dynamic creation of help menus.
 

@@ -2,7 +2,7 @@
 
 This repository contains the code for my port of the GNU getopt functionality found on most Unix-like systems.
 
-getopt.net is written entirely in C# and is a "cleanroom port"; although not necessary it made the project that much more fun :)
+getopt.net is written entirely in C# and is a "cleanroom port"; although not necessary it made the project that much more fun 😊
 
 
 ![getopt.net logo](https://raw.githubusercontent.com/SimonCahill/getopt.net/master/img/getopt.net-logo-1280x128.png)
@@ -21,7 +21,7 @@ getopt.net is written entirely in C# and is a "cleanroom port"; although not nec
 There are several methods of installing and using getopt.net in your project.
 
 1. Add the repository as a submodule, checkout a tag and include it as a project reference in your solution
-2. Use the NuGet package manager: `install-package getopt.net-bsd` Note the `-bsd` ending which shows the license used and **not** system requirements! getopt.net was already in use :(
+2. Use the NuGet package manager: `install-package getopt.net-bsd` Note the `-bsd` ending which shows the license used and **not** system requirements! getopt.net was already in use 😕
 3. Use the dotnet command-line tools: `dotnet add package getopt.net-bsd`
 
 [NuGet page](https://www.nuget.org/packages/getopt.net-bsd/)
@@ -176,10 +176,10 @@ static void PrintHelp(GetOpt getopt) {
 produces the following output:
 
 ```
-getopt.net reference v1.0.0
+getopt.net reference v1.0.0 © 2023 Simon Cahill (contact@simonc.eu)
 
 Usage:
-        getopt.net reference [options]
+    getopt.net reference [options]
 
 Supported option conventions:
     Windows (/): yes
@@ -187,13 +187,13 @@ Supported option conventions:
     Gnu/Posix (-, --): yes
 
 Switches:
-        -h, --help      Displays this help text.
-        -v, --version   Displays the version of this program.
+    -h, --help    Displays this help text.
+    -v, --version Displays the version of this program.
 
 Options:
-                        Reads the file back to stdout. The file is read into a local buffer and then printed out. Also I created this really long description to show
-        -f, --file      that getopt.net can handle long descriptions.
-
+                  Reads the file back to stdout. The file is read into a local buffer and then
+                  printed out. Also I created this really long description to show that getopt.net
+    -f, --file    can handle long descriptions.
 
 This is a reference implementation of getopt.net in C#.
 ```

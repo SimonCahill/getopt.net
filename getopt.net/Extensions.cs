@@ -5,6 +5,26 @@ namespace getopt.net {
     using System.Linq;
     using System.Text;
 
+    /// <summary>
+    /// This enumeration contains different prefixes for the generation of shortopt strings.
+    /// </summary>
+    public enum OptStringPrefix {
+        /// <summary>
+        /// No prefix.
+        /// </summary>
+        None,
+
+        /// <summary>
+        /// If the first character of optstring is '+' or the environment variable POSIXLY_CORRECT is set, then option processing stops as soon as a nonoption argument is encountered.
+        /// </summary>
+        Plus = '+',
+
+        /// <summary>
+        /// If the first character of optstring is '-', then each nonoption argv-element is handled as if it were the argument of an option with character code 1.
+        /// </summary>
+        Minus = '-'
+    } 
+
     /// <summary >
     /// This class contains extension methods specific to getopt.net.
     /// If these extension methods help you in your program, you're free to use them too!
@@ -29,15 +49,15 @@ namespace getopt.net {
         /// <param name="list">The list of options to search.</param>
         /// <param name="optVal">The value to search for.</param>
         /// <returns>The <see cref="Option" /> with the <see cref="Option.Value" /> <paramref name="optVal" />, or <code >null</code> if no option was found matching the name.</returns>
-        public static Option? FindOptionOrDefault(this Option[]? list, char optVal) => list?.FirstOrDefault(o => o.Value == optVal);
+        public static Option? FindOptionOrDefault(this Option[]? list, char optVal) => list?.ToList().Find(o => o.Value == optVal);
 
         /// <summary>
         /// Creates a short opt string from an array of <see cref="Option"/> objects.
         /// </summary>
         /// <param name="list">The options to convert.</param>
         /// <returns><code>null</code> if the option list is empty or null. A string contain a shortopt-form string representing all the options from <paramref name="list"/>.</returns>
-        public static string? ToShortOptString(this Option[]? list) {
-            if (list is null || list.Length == 0) { return null; }
+        public static string ToShortOptString(this Option[] list) {
+            if (list is null || list.Length == 0) { return string.Empty; }
 
             var sBuilder = new StringBuilder();
 
@@ -53,6 +73,25 @@ namespace getopt.net {
                     default: break;
                 }
             }
+
+            return sBuilder.ToString();
+        }
+
+        /// <summary>
+        /// Creates a short opt string from an array of <see cref="Option"/> objects.
+        /// </summary>
+        /// <param name="list">The options to convert.</param>
+        /// <param name="prefix">The prefix to use for the shortopt string.</param>
+        /// <returns><code>null</code> if the option list is empty or null. A string contain a shortopt-form string representing all the options from <paramref name="list"/>.</returns>
+        public static string ToShortOptString(this Option[] list, OptStringPrefix prefix) {
+            if (list is null || list.Length == 0) { return string.Empty; }
+
+            var sBuilder = new StringBuilder();
+            if (prefix != OptStringPrefix.None) {
+                sBuilder.Append((char)prefix);
+            }
+
+            sBuilder.Append(list.ToShortOptString());
 
             return sBuilder.ToString();
         }
@@ -95,6 +134,7 @@ namespace getopt.net {
         /// <param name="generatorOptions">(Optional) Customised generator configuration.</param>
         /// <returns>A string value containing the help text.</returns>
         public static string GenerateHelpText(this GetOpt getopt, HelpTextConfig? generatorOptions = null) {
+            const string Tab = "    ";
             if (getopt is null) { throw new ArgumentNullException(nameof(getopt), "getopt must not be null!"); }
 
             var options = getopt.Options;
@@ -117,7 +157,7 @@ namespace getopt.net {
             string longOptPrefix = config.OptionConvention == OptionConvention.Windows ? "/" : config.OptionConvention == OptionConvention.GnuPosix ? "--" : "-";
 
             sBuilder.AppendLine("Usage:");
-            sBuilder.AppendLine($"\t{config.ApplicationName ?? GetApplicationName()} [options]");
+            sBuilder.AppendLine($"{Tab}{config.ApplicationName ?? GetApplicationName()} [options]");
             if (config.ShowSupportedConventions) {
                 sBuilder.AppendLine(
                     $"""
@@ -132,26 +172,41 @@ namespace getopt.net {
             sBuilder.AppendLine();
 
             var longestName = options.Max(o => o.Name?.Length ?? 0);
+            // Align longestName to the next multiple of 4
+            longestName = (longestName + 3) / 4 * 4;
 
             sBuilder.AppendLine("Switches:");
             foreach (var opt in options.Where(o => o.ArgumentType == ArgumentType.None)) {
-                sBuilder.AppendLine($"\t{shortOptPrefix}{(char)opt.Value}, {longOptPrefix:longestName}{opt.Name}\t{opt.Description}");
+                sBuilder.AppendLine(string.Format("{0}{1}{2}, {3}{4}{5}", Tab, shortOptPrefix, (char)opt.Value, longOptPrefix, opt.Name?.PadRight(longestName), opt.Description ?? string.Empty));
             }
             sBuilder.AppendLine();
 
             sBuilder.AppendLine("Options:");
-            foreach (var opt in options.Where(o => o.ArgumentType == ArgumentType.Optional || o.ArgumentType == ArgumentType.Required)) {
-                var line = $"\t{shortOptPrefix}{(char)opt.Value}, {longOptPrefix:longestName}{opt.Name}\t{opt.Description ?? string.Empty}";
+            foreach (var opt in options.Where(o => o.ArgumentType != ArgumentType.None)) {
+                var line = string.Format("{0}{1}{2}, {3}{4}{5}", Tab, shortOptPrefix, (char)opt.Value, longOptPrefix, opt.Name?.PadRight(longestName), opt.Description ?? string.Empty);
+
                 // If line is > config.MaxWidth, split it into multiple lines and align the description
                 if (line.Length > config.MaxWidth) {
                     var desc = opt.Description ?? string.Empty;
+                    var beginWhitespace = new string(
+                        ' ',
+                        Tab.Length +
+                        shortOptPrefix.Length +
+                        1 +
+                        longOptPrefix.Length +
+                        (opt.Name?.PadRight(longestName).Length ?? 0) +
+                        2 // these last two are the missing space and comma between the long and short opt
+                    );
+
                     while (desc.Length > config.MaxWidth - longestName - 10) {
                         var split = desc.Substring(0, config.MaxWidth - longestName - 10);
                         var splitIndex = split.LastIndexOf(' ');
-                        sBuilder.AppendLine($"\t{new string(' ', longestName + 9)}{split.Substring(0, splitIndex)}");
+
+                        sBuilder.AppendLine(string.Format("{0}{1}", beginWhitespace, split.Substring(0, splitIndex)));
                         desc = desc.Substring(splitIndex + 1);
                     }
-                    sBuilder.AppendLine($"\t{shortOptPrefix}{(char)opt.Value}, {longOptPrefix:longestName}{opt.Name}\t{desc}");
+
+                    sBuilder.AppendLine(string.Format("{0}{1}{2}, {3}{4}{5}", Tab, shortOptPrefix, (char)opt.Value, longOptPrefix, opt.Name?.PadRight(longestName), desc));
                 } else {
                     sBuilder.AppendLine(line);
                 }

@@ -625,7 +625,7 @@ namespace getopt.net.tests {
 
             Assert.IsNotNull(Extensions.ToShortOptString(emptyLongOpts));
             Assert.IsTrue(string.IsNullOrEmpty(Extensions.ToShortOptString(emptyLongOpts)));
-            Assert.IsNotNull(Extensions.ToShortOptString(nullLongOpts));
+            Assert.IsNotNull(Extensions.ToShortOptString(nullLongOpts!));
             Assert.IsTrue(string.IsNullOrEmpty(Extensions.ToShortOptString(emptyLongOpts)));
         }
 
@@ -651,6 +651,252 @@ namespace getopt.net.tests {
             optChar = getopt.GetNextOpt(out optArg);
             Assert.AreEqual('2', optChar);
             Assert.IsNull(optArg);
+        }
+
+        [TestMethod]
+        public void TestParseAllOptions_OnlyValidOptionsAndHandlers() {
+            var getopt = new GetOpt {
+                AppArgs = new[] { "--long-one", "--long-two" },
+                Options = new[] {
+                    new Option("long-one", ArgumentType.None, '1') {
+                        Handler = (e) => {
+                            Assert.AreEqual('1', e.Option.Value);
+                            Assert.IsNull(e.Argument);
+                        }
+                    },
+                    new Option("long-two", ArgumentType.None, '2') {
+                        Handler = (e) => {
+                            Assert.AreEqual('2', e.Option.Value);
+                            Assert.IsNull(e.Argument);
+                        }
+                    }
+                }
+            };
+        }
+
+        [TestMethod]
+        public void TestParseAllOptions_WithNonOptionHandler_DoNotIgnoreInvalidOpts() {
+            var getopt = new GetOpt {
+                AppArgs = new[] { "filename.txt", "--long-one", "--long-two" },
+                Options = new[] {
+                    new Option("long-one", ArgumentType.None, '1') {
+                        Handler = (e) => {
+                            Assert.AreEqual('1', e.Option.Value);
+                            Assert.IsNull(e.Argument);
+                        }
+                    },
+                    new Option("long-two", ArgumentType.None, '2') {
+                        Handler = (e) => {
+                            Assert.AreEqual('2', e.Option.Value);
+                            Assert.IsNull(e.Argument);
+                        }
+                    }
+                },
+                NonOptionHandler = (e) => {
+                    Assert.AreEqual(GetOpt.InvalidOptChar, e.Option.Value);
+                    Assert.AreEqual("filename.txt", e.Argument);
+                }
+            };
+
+            var allParsed = getopt.ParseAllOptions();
+            Assert.IsTrue(allParsed);
+        }
+
+        [TestMethod]
+        public void TestParseAllOptions_WithNonOptionHandler_IgnoreInvalidOpts() {
+            var getopt = new GetOpt {
+                IgnoreInvalidOptions = true,
+                AppArgs = new[] { "filename.txt", "--long-one", "--long-two" },
+                Options = new[] {
+                    new Option("long-one", ArgumentType.None, '1') {
+                        Handler = (e) => {
+                            Assert.AreEqual('1', e.Option.Value);
+                            Assert.IsNull(e.Argument);
+                        }
+                    },
+                    new Option("long-two", ArgumentType.None, '2') {
+                        Handler = (e) => {
+                            Assert.AreEqual('2', e.Option.Value);
+                            Assert.IsNull(e.Argument);
+                        }
+                    }
+                },
+                NonOptionHandler = (e) => {
+                    Assert.AreEqual(GetOpt.NonOptChar, e.Option.Value);
+                    Assert.AreEqual("filename.txt", e.Argument);
+                },
+                ShortOpts = "-12"
+            };
+
+            var allParsed = getopt.ParseAllOptions();
+            Assert.IsTrue(allParsed);
+        }
+
+        [TestMethod]
+        public void ParseAllOptions_AllValidOptionsAndHandlers() {
+            var calls = new Dictionary<int, string?>();
+
+            var options = new[] {
+                new Option("alpha",  ArgumentType.None,     'a') { Handler = e => { calls.Add(e.Option.Value, e.Argument); } },
+                new Option("beta",   ArgumentType.Required, 'b') { Handler = e => { calls.Add(e.Option.Value, e.Argument); } },
+                new Option("gamma",  ArgumentType.Optional, 'g') { Handler = e => { calls.Add(e.Option.Value, e.Argument); } }
+            };
+
+            var opt = new GetOpt(new[] { "-a", "-b", "val", "-gopt" }, options.ToShortOptString(), options);
+
+            var result = opt.ParseAllOptions();
+
+            Assert.IsTrue(result);
+            Assert.IsTrue(calls.ContainsKey('a'));
+            Assert.IsNull(calls['a']);
+            Assert.IsTrue(calls.ContainsKey('b'));
+            Assert.IsNotNull(calls['b']);
+            Assert.AreEqual("val", calls['b']);
+            Assert.IsNotNull(calls['g']);
+            Assert.AreEqual("opt", calls['g']);
+
+            Assert.AreEqual(3, calls.Count);
+        }
+
+        [TestMethod]
+        public void ParseAllOptions_InvokesNonOptionHandler_ForNonOption() {
+            var optionCalls = new Dictionary<int, string?>();
+            var nonOptionCalls = new Dictionary<int, string?>();
+
+            var options = new[] {
+                new Option("alpha", ArgumentType.None, 'a') { Handler = e => optionCalls.Add(e.Option.Value, e.Argument) }
+            };
+
+            var opt = new GetOpt(new[] { "file.txt", "-a" }, options) {
+                NonOptionHandler = e => nonOptionCalls.Add(e.Option.Value, e.Argument)
+            };
+
+            var result = opt.ParseAllOptions();
+
+            Assert.IsTrue(result);
+            Assert.AreEqual(1, optionCalls.Count);
+            Assert.IsNull(optionCalls[0]);
+
+            Assert.AreEqual(1, nonOptionCalls.Count);
+            // First item should be a non-option: when MustReturnChar1() is false, InvalidOptChar is used
+            Assert.AreEqual(GetOpt.InvalidOptChar, nonOptionCalls.Keys.ElementAt(0));
+            Assert.AreEqual("file.txt", nonOptionCalls[0]);
+        }
+
+        [TestMethod]
+        public void ParseAllOptions_NonOptionHandler_StopsEarly() {
+            var optionCalls = new Dictionary<int, string?>();
+            var nonOptionCalls = new Dictionary<int, string?>();
+
+            var options = new[] {
+                new Option("alpha", ArgumentType.None, 'a') { Handler = e => optionCalls.Add(e.Option.Value, e.Argument) }
+            };
+
+            var opt = new GetOpt(new[] { "file.txt", "-a" }, options) {
+                NonOptionHandler = e => {
+                    nonOptionCalls.Add(e.Option.Value, e.Argument);
+                    e.ContinueParsing = false;
+                }
+            };
+
+            var result = opt.ParseAllOptions();
+
+            Assert.IsFalse(result); // stopped before -1 reached
+            Assert.AreEqual(0, optionCalls.Count); // 'a' not processed
+            Assert.AreEqual(1, nonOptionCalls.Count);
+            Assert.AreEqual("file.txt", nonOptionCalls[0]);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ParseException))]
+        public void ParseAllOptions_InvalidOption_NoNonOptionHandler_Throws_WhenNotIgnoring() {
+            var options = new[] {
+                new Option("alpha", ArgumentType.None, 'a') { Handler = _ => { } }
+            };
+
+            var opt = new GetOpt(new[] { "-x" }, options) {
+                IgnoreInvalidOptions = false
+            };
+
+            opt.ParseAllOptions();
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ParseException))]
+        public void ParseAllOptions_MissingHandler_Throws() {
+            var options = new[] {
+                new Option("alpha", ArgumentType.None, 'a') // no handler assigned
+            };
+
+            var opt = new GetOpt(new[] { "-a" }, options);
+
+            opt.ParseAllOptions();
+        }
+
+        [TestMethod]
+        public void ParseAllOptions_NoNonOptionHandler_IgnoreInvalidOptionsTrue_SkipsNonOptions() {
+            var optionCalls = new Dictionary<int, string?>();
+
+            var options = new[] {
+                new Option("alpha", ArgumentType.None, 'a') { Handler = e => optionCalls.Add(e.Option.Value, e.Argument) }
+            };
+
+            var opt = new GetOpt(new[] { "file.txt", "-a" }, options) {
+                IgnoreInvalidOptions = true,
+                NonOptionHandler = null
+            };
+
+            var result = opt.ParseAllOptions();
+
+            Assert.IsTrue(result);
+            Assert.AreEqual(1, optionCalls.Count);
+            Assert.IsNull(optionCalls[0]);
+        }
+
+        [TestMethod]
+        public void ParseAllOptions_DoubleDashStopsParsing_NonOptionHandlerReceivesRest() {
+            var optionCalls = new Dictionary<int, string?>();
+            var nonOptionCalls = new Dictionary<int, string?>();
+
+            var options = new[] {
+                new Option("alpha", ArgumentType.None, 'a') { Handler = e => optionCalls.Add(e.Option.Value, e.Argument) }
+            };
+
+            var opt = new GetOpt(new[] { "-a", "--", "file.txt", "-xzf" }, options) {
+                DoubleDashStopsParsing = true,
+                NonOptionHandler = e => nonOptionCalls.Add(e.Option.Value, e.Argument)
+            };
+
+            var result = opt.ParseAllOptions();
+
+            Assert.IsTrue(result);
+            Assert.AreEqual(1, optionCalls.Count);
+            Assert.IsNull(optionCalls[0]);
+
+            Assert.AreEqual(2, nonOptionCalls.Count);
+            Assert.AreEqual(GetOpt.NonOptChar, nonOptionCalls.Keys.ElementAt(0));
+            Assert.AreEqual("file.txt", nonOptionCalls[0]);
+            Assert.AreEqual(GetOpt.NonOptChar, nonOptionCalls.Keys.ElementAt(1));
+            Assert.AreEqual("-xzf", nonOptionCalls[1]);
+        }
+
+        [TestMethod]
+        public void ParseAllOptions_RequiredAndOptionalArgs_PassedToHandlers() {
+            var calls = new Dictionary<int, string?>();
+
+            var options = new[] {
+                new Option("required", ArgumentType.Required, 'r') { Handler = e => calls.Add(e.Option.Value, e.Argument) },
+                new Option("optional", ArgumentType.Optional, 'o') { Handler = e => calls.Add(e.Option.Value, e.Argument) }
+            };
+
+            var opt = new GetOpt(new[] { "-r", "data", "-oextra" }, options);
+
+            var result = opt.ParseAllOptions();
+
+            Assert.IsTrue(result);
+            CollectionAssert.Contains(calls, new KeyValuePair<int, string?>('r', "data"));
+            CollectionAssert.Contains(calls, new KeyValuePair<int, string?>('o', "extra"));
+            Assert.AreEqual(2, calls.Count);
         }
 
     }

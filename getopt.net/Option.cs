@@ -2,10 +2,17 @@
 
 namespace getopt.net {
 
+    
+    /// <summary>
+    /// Delegate for handling a detected option. Used by ParseAllOptions().
+    /// </summary>
+    /// <param name="e">The event arguments.</param>
+    public delegate void OptionHandler(OptionEventArgs e);
+
     /// <summary>
     /// Represents a single long option for getopt.
     /// </summary>
-    public struct Option {
+    public class Option {
 
         /// <summary>
         /// Constructs a new, empty instance of this struct.
@@ -60,6 +67,11 @@ namespace getopt.net {
         /// The description of the option.
         /// </summary>
         public string? Description { get; set; }
+
+        /// <summary>
+        /// The handler to be called when this option is detected; used by ParseAllOptions().
+        /// </summary>
+        public OptionHandler? Handler { get; set; }
 
     }
 }

@@ -75,7 +75,7 @@ namespace getopt.net {
         /// <summary>
         /// The short opts to use.
         /// </summary>
-        public string? ShortOpts { get; set; } = null;
+        public string? ShortOpts { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether or not "--" stops parsing.
@@ -112,7 +112,7 @@ namespace getopt.net {
         /// <remarks >
         /// If this is set to <code >true</code> and a required argument is missing, '?' will be returned.
         /// </remarks>
-        public bool IgnoreMissingArgument { get; set; } = false;
+        public bool IgnoreMissingArgument { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether or not invalid arguments should be ignored or not.
@@ -195,6 +195,11 @@ namespace getopt.net {
         public int CurrentIndex => m_currentIndex;
 
         /// <summary>
+        /// The handler to be called when a non-option argument is encountered.
+        /// </summary>
+        public OptionHandler? NonOptionHandler { get; set; } = null;
+
+        /// <summary>
         /// Default constructor; it is recommended to use this constructor
         /// and to use brace-initialiser-lists to instantiate/configure each instance of this object.
         /// </summary>
@@ -210,6 +215,17 @@ namespace getopt.net {
             AppArgs = appArgs;
             ShortOpts = shortOpts;
             Options = options;
+        }
+
+        /// <summary>
+        /// Specialised constructor.
+        /// </summary>
+        /// <param name="appArgs">The arguments passed to the application.</param>
+        /// <param name="options">A list of supported options.</param>
+        public GetOpt(string[] appArgs, params Option[] options) {
+            AppArgs = appArgs;
+            Options = options;
+            ShortOpts = options.ToShortOptString();
         }
 
         /// <summary>
@@ -348,6 +364,55 @@ namespace getopt.net {
             }
 
             return new CommandOption(optChar, optArg);
+        }
+
+        /// <summary>
+        /// Parses all options in the argument list.
+        /// </summary>
+        /// <remarks >
+        /// This method will parse all options in the argument list and call the associated handler for each option found.
+        /// </remarks>
+        /// <returns></returns>
+        public bool ParseAllOptions() {
+            var continueParsing = true;
+            var allOptionsParsed = false;
+
+            while (continueParsing) {
+                var optChar = GetNextOpt(out var optArg);
+
+                switch (optChar) {
+                    case -1:
+                        allOptionsParsed = true;
+                        continueParsing = false;
+                        goto EndOfLoop;
+                }
+
+                var option = Options.FirstOrDefault(opt => opt.Value == optChar);
+
+                var eventArgs = default(OptionEventArgs);
+
+                if (option is null && NonOptionHandler is not null) {
+                    eventArgs = new OptionEventArgs(new Option() { Value = optChar }, optArg);
+                    NonOptionHandler.Invoke(eventArgs);
+
+                    continueParsing = eventArgs.ContinueParsing;
+                    continue;
+                } else if (option is null && NonOptionHandler is null) {
+                    if (IgnoreInvalidOptions) { continue; }
+                    else { throw new ParseException($"No handler found for option '{optChar}'!"); }
+                }
+
+                eventArgs = new OptionEventArgs(option!, optArg);
+                if (option!.Handler is null) {
+                    throw new ParseException($"No handler found for option '{option.Name}'!");
+                }
+                option.Handler.Invoke(eventArgs);
+
+                continueParsing = eventArgs.ContinueParsing;
+            }
+
+            EndOfLoop:
+            return allOptionsParsed;
         }
 
         /// <summary>

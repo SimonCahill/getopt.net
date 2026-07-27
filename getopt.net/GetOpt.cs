@@ -428,7 +428,6 @@ namespace getopt.net {
 
             if (m_optPosition + 1 < AppArgs[CurrentIndex].Length) {
                 arg = AppArgs[CurrentIndex].Substring(m_optPosition + 1);
-                incrementCurrentIndex = true;
                 return true;
             }
 
@@ -442,7 +441,7 @@ namespace getopt.net {
                 if (MustStopParsing()) {
                     m_currentIndex = AppArgs.Length; // POSIX behaviour desired
                 } else {
-                    m_currentIndex += 2;
+                    incrementCurrentIndex = true;
                 }
 
                 return true;
@@ -476,18 +475,18 @@ namespace getopt.net {
                         }
                         break;
                     case ArgumentType.Optional:
-                        if (TryGetArgumentForShortOption(ref optArg, out incrementCurrentIndex)) {
-                            ResetOptPosition();
-                            if (incrementCurrentIndex) { m_currentIndex++; }
-                            return curOpt;
-                        }
+                        TryGetArgumentForShortOption(ref optArg, out incrementCurrentIndex);
+                        if (incrementCurrentIndex) { m_currentIndex++; }
                         break;
                     case ArgumentType.Required:
                         if (!TryGetArgumentForShortOption(ref optArg, out incrementCurrentIndex)) {
-                            if (incrementCurrentIndex) { m_currentIndex++; }
-                            if (IgnoreMissingArgument) { return MissingArgChar; }
+                            if (IgnoreMissingArgument) {
+                                if (incrementCurrentIndex) { m_currentIndex++; }
+                                return MissingArgChar; 
+                            }
                             else { throw new ParseException(curOpt.ToString(), "Missing argument for option!"); }
                         }
+                        if (incrementCurrentIndex) { m_currentIndex++; }
                         break;
                 }
             }

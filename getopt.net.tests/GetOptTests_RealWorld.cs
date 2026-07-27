@@ -144,6 +144,22 @@ namespace getopt.net.tests {
         }
 
         [TestMethod]
+        public void TestGetNextOptShortWithRequiredArgs_SeparatedBySpace()
+        {
+            var opt = new GetOpt();
+            opt.ShortOpts = "G:V:";
+            opt.AppArgs = new[] { "-G", "debug", "-V", "test" };
+
+            var optChar = (char)opt.GetNextOpt(out var optArg);
+            Assert.AreEqual('G', optChar);
+            Assert.AreEqual("debug", optArg);
+
+            optChar = (char)opt.GetNextOpt(out optArg);
+            Assert.AreEqual('V', optChar);
+            Assert.AreEqual("test", optArg);
+        }
+
+        [TestMethod]
         public void TestGetNextOptShort_WithFallbackToLongOpt() {
             var opt = new GetOpt();
             opt.Options = new[] {
@@ -620,12 +636,12 @@ namespace getopt.net.tests {
 
         [TestMethod]
         public void TestConvertLongOptsToShortOptsWithFailure() {
-            var emptyLongOpts = new Option[] {};
+            var emptyLongOpts = Array.Empty<Option>();
             var nullLongOpts = default(Option[]);
 
             Assert.IsNotNull(Extensions.ToShortOptString(emptyLongOpts));
             Assert.IsTrue(string.IsNullOrEmpty(Extensions.ToShortOptString(emptyLongOpts)));
-            Assert.IsNotNull(Extensions.ToShortOptString(nullLongOpts));
+            Assert.IsNotNull(Extensions.ToShortOptString(nullLongOpts!));
             Assert.IsTrue(string.IsNullOrEmpty(Extensions.ToShortOptString(emptyLongOpts)));
         }
 

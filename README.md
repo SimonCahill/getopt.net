@@ -131,6 +131,7 @@ getopt.net can be configured to not throw exceptions if that's your thing.
 Just set the `IgnoreXXX` options to `true`, and getopt.net will ignore bad user input!
 
 If `IgnoreInvalidOptions` is enabled, entering an unknown option won't throw an exception, but instead a `!` will be returned.
+Non-option arguments do not throw when this setting is disabled; they are returned according to the configured parsing mode.
 If `IgnoreMissingArguments` is enabled, forgetting to add a **required** argument won't thow an exception either! Instead, `?` will be returned.
 
 The exceptions *do* contain more info, however.

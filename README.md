@@ -210,12 +210,12 @@ using getopt.net;
 
 static void Main(string[] args) {
 
-    var getopt = new Getopt {
+    var getopt = new GetOpt {
         Options = new[] {
             new Option("help",    ArgumentType.None, 'h'),
             new Option("version", ArgumentType.None, 'v'),
             // or, alternatively
-            new Option { Name = "config", ArgumentType.Required, 'c' }
+            new Option { Name = "config", ArgumentType = ArgumentType.Required, Value = 'c' }
         },
         ShortOpts = "hvc:",
         AppArgs = args, // REQUIRED

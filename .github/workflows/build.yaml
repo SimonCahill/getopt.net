@@ -1,21 +1,145 @@
-name: Build getopt.net
+name: Build and test getopt.net
 
-on: [push]
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
 
 jobs:
-  build:
+  version-gate:
+    name: Check library version
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        dotnet-version: [ '8.0' ]
     steps:
-      - uses: actions/checkout@v3
-      - name: Setup .NET Core SDK ${{ matrix.dotnet-version }}
-        uses: actions/setup-dotnet@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
-          dotnet-version: ${{ matrix.dotnet-version }}
-      - name: Install dependencies
-        run: dotnet restore
-      - name: Build
-        run: dotnet build --configuration Release --no-restore
+          fetch-depth: 0
 
+      - name: Require a library version update
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE_SHA: ${{ github.event.before }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+
+          project_file="getopt.net/getopt.net.csproj"
+          current_version="$(sed -nE 's|.*<Version>([^<]+)</Version>.*|\1|p' "$project_file" | head -n 1)"
+
+          if [[ -z "$current_version" ]]; then
+            echo "::error::Could not read the current library version from $project_file."
+            exit 1
+          fi
+
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            comparison_sha="$BASE_SHA"
+          else
+            comparison_sha="$BEFORE_SHA"
+            if [[ "$comparison_sha" =~ ^0+$ ]]; then
+              comparison_sha="$(git rev-parse HEAD^ 2>/dev/null || true)"
+            fi
+          fi
+
+          if [[ -z "$comparison_sha" ]]; then
+            echo "No previous revision is available; accepting version $current_version."
+            exit 0
+          fi
+
+          previous_project="$(git show "$comparison_sha:$project_file" 2>/dev/null || true)"
+          if [[ -z "$previous_project" ]]; then
+            echo "The library project did not exist at $comparison_sha; accepting version $current_version."
+            exit 0
+          fi
+
+          previous_version="$(sed -nE 's|.*<Version>([^<]+)</Version>.*|\1|p' <<< "$previous_project" | head -n 1)"
+          if [[ -z "$previous_version" ]]; then
+            echo "::error::Could not read the previous library version at $comparison_sha."
+            exit 1
+          fi
+
+          if [[ "$current_version" == "$previous_version" ]]; then
+            echo "::error::Library version $current_version has not changed from $comparison_sha."
+            exit 1
+          fi
+
+          echo "Library version updated from $previous_version to $current_version."
+
+  build-and-test:
+    name: Build and test (${{ matrix.os }})
+    needs: version-gate
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore getopt.net.sln
+
+      - name: Build .NET Framework 4.6 library
+        run: dotnet build getopt.net/getopt.net.csproj --configuration Release --framework net46 --no-restore
+
+      - name: Build .NET 8 library
+        run: dotnet build getopt.net/getopt.net.csproj --configuration Release --framework net8.0 --no-restore
+
+      - name: Run tests
+        run: dotnet test getopt.net.tests/getopt.net.tests.csproj --configuration Release --framework net8.0 --no-restore --verbosity normal
+
+      - name: Pack NuGet package
+        if: runner.os == 'Linux'
+        run: dotnet pack getopt.net/getopt.net.csproj --configuration Release --no-build --no-restore --output getopt.net/bin/Release/packages -m:1
+
+      - name: Publish build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: getopt.net-${{ runner.os }}
+          path: getopt.net/bin/Release
+          if-no-files-found: error
+
+  publish-nuget:
+    name: Publish package to NuGet
+    if: >-
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/master' &&
+      github.repository == 'SimonCahill/getopt.net'
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+    steps:
+      - name: Download Linux build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: getopt.net-Linux
+          path: artifacts
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Authenticate with NuGet
+        id: login
+        uses: NuGet/login@v1
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
+      - name: Publish NuGet package
+        run: dotnet nuget push artifacts/packages/*.nupkg --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json

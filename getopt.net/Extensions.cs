@@ -1,8 +1,5 @@
-﻿using System;
+﻿namespace getopt.net {
 
-namespace getopt.net {
-
-    using System.Linq;
     using System.Text;
 
     /// <summary>
@@ -40,7 +37,9 @@ namespace getopt.net {
         public static Option? FindOptionOrDefault(this Option[] list, string optName) {
             if (string.IsNullOrEmpty(optName)) { throw new ArgumentNullException(nameof(optName), "optName must not be null!"); }
 
-            return Array.Find(list, o => o.Name?.Equals(optName, StringComparison.InvariantCulture) == true);
+            var index = Array.FindIndex(list, o => o.Name?.Equals(optName, StringComparison.InvariantCulture) == true);
+
+            return index >= 0 ? list[index] : null;
         }
 
         /// <summary>
@@ -49,7 +48,12 @@ namespace getopt.net {
         /// <param name="list">The list of options to search.</param>
         /// <param name="optVal">The value to search for.</param>
         /// <returns>The <see cref="Option" /> with the <see cref="Option.Value" /> <paramref name="optVal" />, or <code >null</code> if no option was found matching the name.</returns>
-        public static Option? FindOptionOrDefault(this Option[]? list, char optVal) => list?.ToList().Find(o => o.Value == optVal);
+        public static Option? FindOptionOrDefault(this Option[]? list, char optVal) {
+            if (list is null) { return null; }
+
+            var index = Array.FindIndex(list, o => o.Value == optVal);
+            return index >= 0 ? list[index] : null;
+        }
 
         /// <summary>
         /// Creates a short opt string from an array of <see cref="Option"/> objects.
@@ -231,4 +235,3 @@ namespace getopt.net {
 
     }
 }
-

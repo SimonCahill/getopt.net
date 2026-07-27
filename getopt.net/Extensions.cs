@@ -1,8 +1,5 @@
-﻿using System;
+﻿namespace getopt.net {
 
-namespace getopt.net {
-
-    using System.Linq;
     using System.Text;
 
     /// <summary>
@@ -238,4 +235,3 @@ namespace getopt.net {
 
     }
 }
-

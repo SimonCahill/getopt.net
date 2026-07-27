@@ -406,9 +406,6 @@ namespace getopt.net {
                         ++m_currentIndex;
                     }
                     break;
-                default: // this case will handle cases where developers carelessly cast integers to the enum type
-                    optArg = null;
-                    break;
             }
 
             ++m_currentIndex;

@@ -381,14 +381,15 @@ namespace getopt.net {
             var opt = (Option)nullableOpt;
             switch (opt.ArgumentType) {
                 case ArgumentType.Required:
-                    if (optArg == null && (IsLongOption(AppArgs[CurrentIndex + 1]) || IsShortOption(AppArgs[CurrentIndex + 1]))) {
+                    if (optArg != null) { break; }
+                    if (AppArgs.Length <= CurrentIndex + 1 || IsLongOption(AppArgs[CurrentIndex + 1]) || IsShortOption(AppArgs[CurrentIndex + 1])) {
                         ++m_currentIndex;
                         if (IgnoreMissingArgument) {
                             return MissingArgChar;
                         } else {
-                            throw new ParseException(AppArgs[CurrentIndex], "Missing required argument!");
+                            throw new ParseException(AppArgs[CurrentIndex - 1], "Missing required argument!");
                         }
-                    } else if (optArg != null) { break; }
+                    }
 
                     optArg = AppArgs[CurrentIndex + 1];
                     if (MustStopParsing()) { // POSIX behaviour desired
@@ -400,7 +401,7 @@ namespace getopt.net {
                     break;
                 case ArgumentType.Optional:
                     // DRY this off at some point
-                    if (optArg == null && !IsLongOption(AppArgs[CurrentIndex + 1]) && !IsShortOption(AppArgs[CurrentIndex + 1])) {
+                    if (optArg == null && AppArgs.Length > CurrentIndex + 1 && !IsLongOption(AppArgs[CurrentIndex + 1]) && !IsShortOption(AppArgs[CurrentIndex + 1])) {
                         optArg = AppArgs[CurrentIndex + 1];
                         ++m_currentIndex;
                     }

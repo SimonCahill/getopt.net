@@ -637,29 +637,36 @@ namespace getopt.net {
             if (string.IsNullOrEmpty(arg)) { return false; }
 
             if (
-                AllowWindowsConventions &&
-                arg.Length > 1          &&
-                arg[0] == SingleSlash   &&
-                Options.Length != 0     &&
-                Options.Any(o => o.Name == arg.Split(WinArgSeparator, GnuArgSeparator, ' ')[0].Substring(1)) // We only need this option when parsing options following Windows' conventions
+                arg.Length >= 3 &&
+                arg[0] == SingleDash &&
+                arg[1] == SingleDash
             ) { return true; }
 
-            // Check for Powershell-style arguments.
-            // Powershell arguments are weird and extra checks are needed.
-            // Powershell-style arguments would theoretically interfere with short opts,
+            // Check for Windows- or Powershell-style arguments.
+            // Extra checks are needed, as they would theoretically interfere with short opts,
             // so a check to determine whether or not the option is found in Options is required.
             if (
-                AllowPowershellConventions  &&
-                arg.Length > 1              &&
-                arg[0] == SingleDash        &&
-                Options.Length != 0         &&
-                Options.Any(o => o.Name == arg.Split(WinArgSeparator, GnuArgSeparator, ' ')[0].Substring(1)) // We only need this when parsing options following Powershell's conventions
-                // This parsing method is really similar to Windows option parsing...
-            ) { return true; }
+                AllowWindowsConventions &&
+                arg.Length >= 2 &&
+                arg[0] == SingleSlash ||
+                AllowPowershellConventions &&
+                arg.Length >= 2 &&
+                arg[0] == SingleDash
+                // This parsing method is really similar to Windows option parsing..
+            ) {
+                // Need to check without the option argument and the first character.
+                if (Options.Length == 0) { return false; }
+                int index = arg.IndexOfAny(new char[] { WinArgSeparator, GnuArgSeparator, ' ' });
+                if (index >= 1) {
+                    arg = arg.Substring(1, index - 1);
+                }
+                else if (arg.Length >= 1) {
+                    arg = arg.Substring(1);
+                }
+                return Options.Any(o => o.Name == arg);
+            }
 
-            return arg.Length > 2       &&
-                   arg[0] == SingleDash &&
-                   arg[1] == SingleDash;
+            return false;
         }
 
         /// <summary>

@@ -119,7 +119,8 @@ namespace getopt.net {
         /// Default: <code >true</code>
         /// </summary>
         /// <remarks >
-        /// If this is set to <code >true</code> and an invalid argument is found, then '!' will be returned.
+        /// If this is set to <code >true</code> and an unknown option is found, then '!' will be returned.
+        /// Non-option arguments are returned according to the configured parsing mode and do not cause an exception.
         /// </remarks>
         public bool IgnoreInvalidOptions { get; set; } = true;
 
@@ -316,14 +317,18 @@ namespace getopt.net {
                 return ParseShortOption(out outOptArg);
             }
 
-            if (IgnoreInvalidOptions) {
-                outOptArg = AppArgs[CurrentIndex];
-                m_currentIndex++;
-                if (MustReturnChar1()) { return NonOptChar; }
-                else { return InvalidOptChar; }
-            } else {
+            var currentArg = AppArgs[CurrentIndex];
+            var isOptionLike = currentArg.Length > 1 &&
+                               (currentArg[0] == SingleDash ||
+                                AllowWindowsConventions && currentArg[0] == SingleSlash);
+            if (!IgnoreInvalidOptions && isOptionLike) {
                 throw new ParseException(AppArgs[CurrentIndex], "Unexpected option argument!");
             }
+
+            outOptArg = currentArg;
+            m_currentIndex++;
+
+            return MustReturnChar1() ? NonOptChar : InvalidOptChar;
         }
 
         /// <summary>
@@ -369,12 +374,13 @@ namespace getopt.net {
 
             var nullableOpt = Options.FindOptionOrDefault(AppArgs[m_currentIndex]);
             if (nullableOpt is null) {
+                var invalidOption = AppArgs[m_currentIndex];
                 ++m_currentIndex;
                 if (!IgnoreInvalidOptions) {
-                    throw new ParseException(AppArgs[m_currentIndex], "Invalid option found!");
+                    throw new ParseException(invalidOption, "Invalid option found!");
                 }
 
-                optArg = AppArgs[m_currentIndex];
+                optArg = invalidOption;
                 return InvalidOptChar;
             }
 
@@ -540,9 +546,7 @@ namespace getopt.net {
             var nullableOpt = Options.FindOptionOrDefault(shortOpt);
 
             if (nullableOpt == null) {
-                if (IgnoreInvalidOptions) {
-                    return ArgumentType.None;
-                } else { throw new ParseException(shortOpt.ToString(), "Encountered unknown option!"); }
+                return IgnoreInvalidOptions ? null : throw new ParseException(shortOpt.ToString(), "Encountered unknown option!");
             }
 
             var opt = (Option)nullableOpt;

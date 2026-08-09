@@ -1,5 +1,15 @@
 # getop.net changelog
 
+# v1.1.0
+Version 1.1.0 adds optional, backwards-compatible support for main commands and their getopt-style subcommands.
+
+## Changes
+ - Added `MainCommand`, `GetOpt.Commands` and `GetOpt.SelectedCommand` for command-aware applications.
+ - Added opt-in, culture-independent case-insensitive matching for commands and long options.
+ - Added command spelling suggestions through `CommandMisspeltException` and `CommandNotFoundException`.
+ - Extended generated help with command usage and indented subcommand listings.
+ - Added command parsing, casing, suggestion and help-generation tests.
+
 # v1.0.1
 Version 1.0.1 introduces non-breaking bug fixes and improvements to the library.
 

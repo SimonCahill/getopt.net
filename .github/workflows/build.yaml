@@ -23,6 +23,8 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           BEFORE_SHA: ${{ github.event.before }}
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          REF_NAME: ${{ github.ref_name }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
           set -euo pipefail
 
@@ -36,8 +38,19 @@ jobs:
 
           if [[ "$EVENT_NAME" == "pull_request" ]]; then
             comparison_sha="$BASE_SHA"
+            comparison_source="pull request base"
+          elif [[ "$REF_NAME" != "$DEFAULT_BRANCH" ]]; then
+            default_branch_ref="refs/remotes/origin/$DEFAULT_BRANCH"
+            if ! git show-ref --verify --quiet "$default_branch_ref"; then
+              echo "::error::Could not find the default branch ref $default_branch_ref."
+              exit 1
+            fi
+
+            comparison_sha="$(git merge-base HEAD "$default_branch_ref")"
+            comparison_source="merge base with $DEFAULT_BRANCH"
           else
             comparison_sha="$BEFORE_SHA"
+            comparison_source="previous $DEFAULT_BRANCH revision"
             if [[ "$comparison_sha" =~ ^0+$ ]]; then
               comparison_sha="$(git rev-parse HEAD^ 2>/dev/null || true)"
             fi
@@ -61,11 +74,11 @@ jobs:
           fi
 
           if [[ "$current_version" == "$previous_version" ]]; then
-            echo "::error::Library version $current_version has not changed from $comparison_sha."
+            echo "::error::Library version $current_version has not changed from the $comparison_source ($comparison_sha)."
             exit 1
           fi
 
-          echo "Library version updated from $previous_version to $current_version."
+          echo "Library version updated from $previous_version to $current_version relative to the $comparison_source ($comparison_sha)."
 
   build-and-test:
     name: Build and test (${{ matrix.os }})

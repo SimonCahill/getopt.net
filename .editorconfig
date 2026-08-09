@@ -1,4 +1,123 @@
-﻿[*.cs]
+# top-most EditorConfig file
+root = true
 
-# Default severity for analyzer diagnostics with category 'Style'
-dotnet_analyzer_diagnostic.category-Style.severity = none
+# All files: Formatting defaults
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+max_line_length = 180
+
+# C# files: Specific guidelines
+[*.cs]
+# --- BRACE STYLE (K&R / 1TBS) ---
+# Enforce braces on the same line for everything
+csharp_new_line_before_open_brace = none
+# Keep else, catch, and finally on the same line as the closing brace
+csharp_new_line_before_else = false
+csharp_new_line_before_catch = false
+csharp_new_line_before_finally = false
+# Attach inheritance/interface colons to the declared type: `class Service: IService`
+csharp_space_before_colon_in_inheritance_clause = false
+csharp_space_after_colon_in_inheritance_clause = true
+
+# --- PRIMARY CONSTRUCTOR PARAMETERS ---
+# Keep class/record primary-constructor parameters on one line when the declaration fits max_line_length.
+resharper_csharp_wrap_primary_constructor_parameters_style = wrap_if_long
+resharper_csharp_max_primary_constructor_parameters_on_line = 100
+resharper_csharp_keep_existing_primary_constructor_declaration_parens_arrangement = false
+resharper_csharp_wrap_before_primary_constructor_declaration_lpar = false
+resharper_csharp_wrap_after_primary_constructor_declaration_lpar = false
+resharper_csharp_wrap_before_primary_constructor_declaration_rpar = false
+
+# --- BLANK-LINE PADDING ---
+# Pad the contents of namespaces and types (including classes, structs, records, and interfaces).
+resharper_csharp_blank_lines_inside_namespace = 1
+resharper_csharp_blank_lines_inside_type = 1
+
+# Keep one blank line around methods, constructors, operators, properties, and events.
+resharper_csharp_blank_lines_around_invocable = 1
+resharper_csharp_blank_lines_around_single_line_invocable = 1
+resharper_csharp_blank_lines_around_local_method = 1
+resharper_csharp_blank_lines_around_single_line_local_method = 1
+resharper_csharp_blank_lines_around_property = 1
+resharper_csharp_blank_lines_around_single_line_property = 1
+resharper_csharp_blank_lines_around_auto_property = 1
+resharper_csharp_blank_lines_around_single_line_auto_property = 1
+
+# Consecutive fields and local-variable declarations may remain adjacent.
+resharper_csharp_blank_lines_around_field = 0
+resharper_csharp_blank_lines_around_single_line_field = 0
+
+# Separate completed if/loop/switch/using blocks from the following statement.
+resharper_csharp_blank_lines_after_block_statements = 1
+
+# Put a blank line before return and other control-transfer statements.
+resharper_csharp_blank_lines_before_control_transfer_statements = 1
+
+# Normalize padding to a single blank line rather than preserving larger gaps.
+resharper_csharp_keep_blank_lines_in_declarations = 1
+resharper_csharp_keep_blank_lines_in_code = 1
+
+# --- CONTROL FLOW ---
+# Braces MUST be used for every if, else, for, while, do/while
+csharp_prefer_braces = true:error
+
+# --- NAMESPACES ---
+# Enforce file-scoped namespaces
+csharp_style_namespace_declarations = file_scoped:error
+
+# --- NAMING STYLES ---
+dotnet_naming_style.pascal_case_style.capitalization = pascal_case
+
+dotnet_naming_style.interface_style.capitalization = pascal_case
+dotnet_naming_style.interface_style.required_prefix = I
+
+# Prefixes are removed before capitalization is evaluated. Fields in this
+# repository use m_configManager / s_cfgManager, so the remaining name is camelCase.
+dotnet_naming_style.instance_field_style.capitalization = camel_case
+dotnet_naming_style.instance_field_style.required_prefix = m_
+
+dotnet_naming_style.static_field_style.capitalization = camel_case
+dotnet_naming_style.static_field_style.required_prefix = s_
+
+# --- SYMBOL GROUPS ---
+dotnet_naming_symbols.interfaces_group.applicable_kinds = interface
+dotnet_naming_symbols.interfaces_group.applicable_accessibilities = *
+
+dotnet_naming_symbols.instance_fields_group.applicable_kinds = field
+dotnet_naming_symbols.instance_fields_group.applicable_accessibilities = *
+dotnet_naming_symbols.instance_fields_group.required_modifiers = instance
+
+dotnet_naming_symbols.static_fields_group.applicable_kinds = field
+dotnet_naming_symbols.static_fields_group.applicable_accessibilities = *
+dotnet_naming_symbols.static_fields_group.required_modifiers = static
+
+dotnet_naming_symbols.constants_group.applicable_kinds = field, local
+dotnet_naming_symbols.constants_group.applicable_accessibilities = *
+dotnet_naming_symbols.constants_group.required_modifiers = const
+
+dotnet_naming_symbols.general_types_group.applicable_kinds = class, struct, enum, method, namespace
+dotnet_naming_symbols.general_types_group.applicable_accessibilities = *
+
+# --- NAMING RULES (Enforced as Errors) ---
+dotnet_naming_rule.interfaces_must_be_ipPascalCase.symbols = interfaces_group
+dotnet_naming_rule.interfaces_must_be_ipPascalCase.style = interface_style
+dotnet_naming_rule.interfaces_must_be_ipPascalCase.severity = error
+
+dotnet_naming_rule.instance_fields_must_be_m_camelCase.symbols = instance_fields_group
+dotnet_naming_rule.instance_fields_must_be_m_camelCase.style = instance_field_style
+dotnet_naming_rule.instance_fields_must_be_m_camelCase.severity = error
+
+dotnet_naming_rule.static_fields_must_be_s_camelCase.symbols = static_fields_group
+dotnet_naming_rule.static_fields_must_be_s_camelCase.style = static_field_style
+dotnet_naming_rule.static_fields_must_be_s_camelCase.severity = error
+
+dotnet_naming_rule.constants_must_be_pascal_case.symbols = constants_group
+dotnet_naming_rule.constants_must_be_pascal_case.style = pascal_case_style
+dotnet_naming_rule.constants_must_be_pascal_case.severity = error
+
+dotnet_naming_rule.types_and_methods_must_be_pascal_case.symbols = general_types_group
+dotnet_naming_rule.types_and_methods_must_be_pascal_case.style = pascal_case_style
+dotnet_naming_rule.types_and_methods_must_be_pascal_case.severity = error

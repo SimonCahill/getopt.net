@@ -7,9 +7,9 @@ namespace getopt.net {
 
     /// <summary>
     /// GetOpt-like class for handling getopt-like command-line arguments in .net.
-    /// 
+    ///
     /// This class contains all the properties and logic required for parsing getopt-like command-line arguments.
-    /// 
+    ///
     /// A detailled description of the usage of this class can be found in the <see href="https://github.com/SimonCahill/getopt.net/wiki" />.
     /// </summary>
     public partial class GetOpt {
@@ -76,6 +76,22 @@ namespace getopt.net {
         /// The short opts to use.
         /// </summary>
         public string? ShortOpts { get; set; } = null;
+
+        /// <summary>
+        /// Gets or sets the optional top-level commands supported by the application.
+        /// </summary>
+        public MainCommand[] Commands { get; set; } = Array.Empty<MainCommand>();
+
+        /// <summary>
+        /// Gets the command selected while parsing, or <code>null</code> before command selection.
+        /// </summary>
+        public MainCommand? SelectedCommand { get; private set; }
+
+        /// <summary>
+        /// Gets or sets whether command and long-option names are matched without regard to case.
+        /// Short options remain case-sensitive. Default: <code>false</code>.
+        /// </summary>
+        public bool CaseInsensitiveMatching { get; set; } = false;
 
         /// <summary>
         /// Gets or sets a value indicating whether or not "--" stops parsing.
@@ -154,20 +170,20 @@ namespace getopt.net {
         /// </summary>
         /// <remarks >
         /// This option is disabled by default.
-        /// 
+        ///
         /// Powershell-style arguments are similar to GNU/POSIX long options, however they begin with a single dash (-).
         /// </remarks>
         public bool AllowPowershellConventions { get; set; } = false;
 
         /// <summary>
         /// Gets or sets a value indicating whether or not parameter files are accepted as a valid form of input.
-        /// 
+        ///
         /// Parameter files are known from some software, such as GCC.
         /// A param file can be passed as <code>@/path/to/file</code>.
         /// </summary>
         /// <remarks >
         /// Param files must follow certain rules, in order to be accepted by getopt.net.
-        /// 
+        ///
         ///  - Param files MUST be text files, the file ending doesn't matter.
         ///  - The contents of the file MUST be split by \n (newlines).
         ///  - each line must be an argument acceptable by getopt.net, depending on the options set.
@@ -222,6 +238,12 @@ namespace getopt.net {
         /// </summary>
         protected int m_optPosition = 1; // this applies to short opts only, where [0] == '-'
 
+        private Option[] ActiveOptions => SelectedCommand?.Options ?? Options;
+
+        private string? ActiveShortOpts => SelectedCommand?.ShortOpts ?? ShortOpts;
+
+        private StringComparison NameComparison => CaseInsensitiveMatching ? StringComparison.InvariantCultureIgnoreCase : StringComparison.InvariantCulture;
+
         /// <summary>
         /// Compiled Regex.
         /// </summary>
@@ -243,7 +265,7 @@ namespace getopt.net {
         /// </summary>
         /// <remarks >
         /// From the getopt man page:
-        /// 
+        ///
         /// > If the first character of optstring is '-', then each nonoption
         /// > argv-element is handled as if it were the argument of an option
         /// > with character code 1.  (This is used by programs that were
@@ -251,7 +273,7 @@ namespace getopt.net {
         /// > and that care about the ordering of the two.)
         /// </remarks>
         /// <returns></returns>
-        protected bool MustReturnChar1() => ShortOpts?.Length > 0 && ShortOpts[0] == '-';
+        protected bool MustReturnChar1() => ActiveShortOpts?.Length > 0 && ActiveShortOpts[0] == '-';
 
         /// <summary>
         /// If the first character of
@@ -260,7 +282,7 @@ namespace getopt.net {
         /// is encountered.
         /// </summary>
         /// <returns><code >true</code> if parsing stops when the first non-option string is found.</returns>
-        protected bool MustStopParsing() => ShortOpts?.Length > 0 && ShortOpts[0] == '+' || Environment.GetEnvironmentVariable("POSIXLY_CORRECT") is not null;
+        protected bool MustStopParsing() => ActiveShortOpts?.Length > 0 && ActiveShortOpts[0] == '+' || Environment.GetEnvironmentVariable("POSIXLY_CORRECT") is not null;
 
         /// <summary>
         /// Gets the next option in the list.
@@ -308,12 +330,16 @@ namespace getopt.net {
             }
 
             if (IsLongOption(AppArgs[m_currentIndex])) {
-                if (Options.Length == 0) { throw new ParseException("Cannot parse long option! No option list provided!"); }
+                if (ActiveOptions.Length == 0) { throw new ParseException("Cannot parse long option! No option list provided!"); }
                 return ParseLongOption(out outOptArg);
             } else if (IsShortOption(AppArgs[CurrentIndex])) {
                 // check if both arg lists are empty
-                if (string.IsNullOrEmpty(ShortOpts) && Options.Length == 0) { throw new ParseException("Cannot parse short option! No option list provided!"); }
+                if (string.IsNullOrEmpty(ActiveShortOpts) && ActiveOptions.Length == 0) { throw new ParseException("Cannot parse short option! No option list provided!"); }
                 return ParseShortOption(out outOptArg);
+            }
+
+            if (SelectedCommand is null && Commands.Length > 0) {
+                return ParseMainCommand(out outOptArg);
             }
 
             if (IgnoreInvalidOptions) {
@@ -324,6 +350,80 @@ namespace getopt.net {
             } else {
                 throw new ParseException(AppArgs[CurrentIndex], "Unexpected option argument!");
             }
+        }
+
+        private int ParseMainCommand(out string? optArg) {
+            var commandName = AppArgs[CurrentIndex];
+            var command = Array.Find(Commands, item => item.Name.Equals(commandName, NameComparison));
+
+            if (command is not null) {
+                SelectedCommand = command;
+                m_currentIndex++;
+                ResetOptPosition();
+                return GetNextOpt(out optArg);
+            }
+
+            var suggestions = FindCommandSuggestions(commandName);
+            if (!IgnoreInvalidOptions) {
+                if (suggestions.Length > 0) {
+                    throw new CommandMisspeltException(commandName, suggestions);
+                }
+
+                throw new CommandNotFoundException(commandName);
+            }
+
+            optArg = commandName;
+            m_currentIndex++;
+            return InvalidOptChar;
+        }
+
+        private string[] FindCommandSuggestions(string commandName) {
+            if (Commands.Length == 0) { return Array.Empty<string>(); }
+
+            var normalizedCommand = commandName.ToUpperInvariant();
+            var candidates = Commands
+                .Select((command, index) => new {
+                    command.Name,
+                    Index = index,
+                    Distance = DamerauLevenshteinDistance(normalizedCommand, command.Name.ToUpperInvariant())
+                })
+                .ToArray();
+            var minimumDistance = candidates.Min(candidate => candidate.Distance);
+
+            return candidates
+                .Where(candidate => candidate.Distance == minimumDistance && candidate.Distance <= SuggestionThreshold(commandName.Length, candidate.Name.Length))
+                .OrderBy(candidate => candidate.Index)
+                .Select(candidate => candidate.Name)
+                .ToArray();
+        }
+
+        private static int SuggestionThreshold(int inputLength, int candidateLength) {
+            var length = Math.Max(inputLength, candidateLength);
+            if (length <= 4) { return 1; }
+            if (length <= 8) { return 2; }
+            return 3;
+        }
+
+        private static int DamerauLevenshteinDistance(string source, string target) {
+            var distances = new int[source.Length + 1, target.Length + 1];
+            for (var i = 0; i <= source.Length; i++) { distances[i, 0] = i; }
+            for (var j = 0; j <= target.Length; j++) { distances[0, j] = j; }
+
+            for (var i = 1; i <= source.Length; i++) {
+                for (var j = 1; j <= target.Length; j++) {
+                    var cost = source[i - 1] == target[j - 1] ? 0 : 1;
+                    distances[i, j] = Math.Min(
+                        Math.Min(distances[i - 1, j] + 1, distances[i, j - 1] + 1),
+                        distances[i - 1, j - 1] + cost
+                    );
+
+                    if (i > 1 && j > 1 && source[i - 1] == target[j - 2] && source[i - 2] == target[j - 1]) {
+                        distances[i, j] = Math.Min(distances[i, j], distances[i - 2, j - 2] + cost);
+                    }
+                }
+            }
+
+            return distances[source.Length, target.Length];
         }
 
         /// <summary>
@@ -367,26 +467,28 @@ namespace getopt.net {
 
             AppArgs[m_currentIndex] = StripDashes(true);
 
-            var nullableOpt = Options.FindOptionOrDefault(AppArgs[m_currentIndex]);
+            var nullableOpt = ActiveOptions.FindOptionOrDefault(AppArgs[m_currentIndex], NameComparison);
             if (nullableOpt is null) {
+                var invalidOption = AppArgs[m_currentIndex];
                 ++m_currentIndex;
                 if (!IgnoreInvalidOptions) {
-                    throw new ParseException(AppArgs[m_currentIndex], "Invalid option found!");
+                    throw new ParseException(invalidOption, "Invalid option found!");
                 }
 
-                optArg = AppArgs[m_currentIndex];
+                optArg = invalidOption;
                 return InvalidOptChar;
             }
 
             var opt = (Option)nullableOpt;
             switch (opt.ArgumentType) {
                 case ArgumentType.Required:
-                    if (optArg == null && (IsLongOption(AppArgs[CurrentIndex + 1]) || IsShortOption(AppArgs[CurrentIndex + 1]))) {
+                    if (optArg == null && (CurrentIndex + 1 >= AppArgs.Length || IsLongOption(AppArgs[CurrentIndex + 1]) || IsShortOption(AppArgs[CurrentIndex + 1]))) {
                         ++m_currentIndex;
                         if (IgnoreMissingArgument) {
+                            optArg = AppArgs[CurrentIndex - 1];
                             return MissingArgChar;
                         } else {
-                            throw new ParseException(AppArgs[CurrentIndex], "Missing required argument!");
+                            throw new ParseException(AppArgs[CurrentIndex - 1], "Missing required argument!");
                         }
                     } else if (optArg != null) { break; }
 
@@ -400,7 +502,7 @@ namespace getopt.net {
                     break;
                 case ArgumentType.Optional:
                     // DRY this off at some point
-                    if (optArg == null && !IsLongOption(AppArgs[CurrentIndex + 1]) && !IsShortOption(AppArgs[CurrentIndex + 1])) {
+                    if (optArg == null && CurrentIndex + 1 < AppArgs.Length && !IsLongOption(AppArgs[CurrentIndex + 1]) && !IsShortOption(AppArgs[CurrentIndex + 1])) {
                         optArg = AppArgs[CurrentIndex + 1];
                         ++m_currentIndex;
                     }
@@ -416,7 +518,7 @@ namespace getopt.net {
 
         /// <summary>
         /// Attempts to retrieve the argument for the current short option.
-        /// 
+        ///
         /// This is only a helper method to keep the code cleaner.
         /// </summary>
         /// <param name="arg">A reference to the current optArg parameter in <see cref="ParseShortOption(out string?)"/></param>
@@ -504,8 +606,8 @@ namespace getopt.net {
         /// <returns><code >true</code> if the short opt requires an argument.</returns>
         /// <exception cref="ParseException">If ignoring errors is disabled (default) and an error occurs during parsing.</exception>
         protected ArgumentType? ShortOptRequiresArg(char shortOpt) {
-            if (ShortOpts is not null && !string.IsNullOrEmpty(ShortOpts)) {
-                var posInStr = ShortOpts.IndexOf(shortOpt);
+            if (ActiveShortOpts is not null && !string.IsNullOrEmpty(ActiveShortOpts)) {
+                var posInStr = ActiveShortOpts.IndexOf(shortOpt);
                 if (posInStr == -1) {
                     goto CheckLongOpt;
                 }
@@ -513,10 +615,10 @@ namespace getopt.net {
                 try {
 
                     char charToCheck;
-                    if (posInStr < ShortOpts.Length - 1) {
-                        charToCheck = ShortOpts[posInStr + 1];
+                    if (posInStr < ActiveShortOpts.Length - 1) {
+                        charToCheck = ActiveShortOpts[posInStr + 1];
                     } else {
-                        charToCheck = ShortOpts[posInStr];
+                        charToCheck = ActiveShortOpts[posInStr];
                     }
 
                     switch (charToCheck) {
@@ -533,18 +635,18 @@ namespace getopt.net {
             }
 
         CheckLongOpt:
-            if (Options.Length == 0) {
+            if (ActiveOptions.Length == 0) {
                 if (IgnoreInvalidOptions) {
                     return null;
                 } else {
                     throw new ParseException(shortOpt.ToString(), "Invalid option list!");
                 }
             }
-            var nullableOpt = Options.FindOptionOrDefault(shortOpt);
+            var nullableOpt = ActiveOptions.FindOptionOrDefault(shortOpt);
 
             if (nullableOpt == null) {
                 if (IgnoreInvalidOptions) {
-                    return ArgumentType.None;
+                    return null;
                 } else { throw new ParseException(shortOpt.ToString(), "Encountered unknown option!"); }
             }
 
@@ -640,8 +742,8 @@ namespace getopt.net {
                 AllowWindowsConventions &&
                 arg.Length > 1          &&
                 arg[0] == SingleSlash   &&
-                Options.Length != 0     &&
-                Options.Any(o => o.Name == arg.Split(WinArgSeparator, GnuArgSeparator, ' ')[0].Substring(1)) // We only need this option when parsing options following Windows' conventions
+                ActiveOptions.Length != 0     &&
+                ActiveOptions.Any(o => o.Name?.Equals(arg.Split(WinArgSeparator, GnuArgSeparator, ' ')[0].Substring(1), NameComparison) == true) // We only need this option when parsing options following Windows' conventions
             ) { return true; }
 
             // Check for Powershell-style arguments.
@@ -652,8 +754,8 @@ namespace getopt.net {
                 AllowPowershellConventions  &&
                 arg.Length > 1              &&
                 arg[0] == SingleDash        &&
-                Options.Length != 0         &&
-                Options.Any(o => o.Name == arg.Split(WinArgSeparator, GnuArgSeparator, ' ')[0].Substring(1)) // We only need this when parsing options following Powershell's conventions
+                ActiveOptions.Length != 0         &&
+                ActiveOptions.Any(o => o.Name?.Equals(arg.Split(WinArgSeparator, GnuArgSeparator, ' ')[0].Substring(1), NameComparison) == true) // We only need this when parsing options following Powershell's conventions
                 // This parsing method is really similar to Windows option parsing...
             ) { return true; }
 
@@ -728,4 +830,3 @@ namespace getopt.net {
         }
     }
 }
-

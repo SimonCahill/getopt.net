@@ -14,30 +14,67 @@ namespace getopt.net.reference.cs {
                     new Option("version",   ArgumentType.None,      'v', "Displays the version of this program."),
                     new Option("file",      ArgumentType.Required,  'f', "Reads the file back to stdout. The file is read into a local buffer and then printed out. Also I created this really long description to show that getopt.net can handle long descriptions."),
                 },
+                Commands = new[] {
+                    new MainCommand(
+                        "config",
+                        "Manages the application's configuration.",
+                        "cp",
+                        new Option("create", ArgumentType.None, 'c', "Creates a new configuration."),
+                        new Option("purge",  ArgumentType.None, 'p', "Deletes the existing configuration.")
+                    )
+                },
                 ShortOpts = "hvf:t;", // the last option isn't an error!
                 AllowParamFiles = true,
                 AllowWindowsConventions = true,
-                AllowPowershellConventions = true
+                AllowPowershellConventions = true,
+                CaseInsensitiveMatching = true,
+                IgnoreInvalidOptions = false
             };
 
             var optChar = 0;
             var fileToRead = string.Empty;
+            var commandHandled = false;
 
-            while ((optChar = getopt.GetNextOpt(out var optArg)) != -1) {
-                switch (optChar) {
-                    case 'h':
-                        PrintHelp(getopt);
-                        return 0;
-                    case 'v':
-                        PrintVersion();
-                        return 0;
-                    case 'f':
-                        fileToRead = optArg;
-                        break;
-                    case 't':
-                        Console.WriteLine($"You passed the option 't' with the argument { (optArg ?? "(no argument supplied)") }");
-                        break;
+            try {
+                while ((optChar = getopt.GetNextOpt(out var optArg)) != -1) {
+                    switch (optChar) {
+                        case 'h':
+                            PrintHelp(getopt);
+                            return 0;
+                        case 'v':
+                            PrintVersion();
+                            return 0;
+                        case 'f':
+                            fileToRead = optArg;
+                            break;
+                        case 't':
+                            Console.WriteLine($"You passed the option 't' with the argument { (optArg ?? "(no argument supplied)") }");
+                            break;
+                        case 'c' when getopt.SelectedCommand?.Name == "config":
+                            Console.WriteLine("Creating a new configuration...");
+                            commandHandled = true;
+                            break;
+                        case 'p' when getopt.SelectedCommand?.Name == "config":
+                            Console.WriteLine("Purging the existing configuration...");
+                            commandHandled = true;
+                            break;
+                    }
                 }
+            } catch (CommandMisspeltException exception) {
+                Console.Error.WriteLine($"Unknown command '{exception.Command}'. Did you mean: {string.Join(", ", exception.PossibleCommands)}?");
+                return 3;
+            } catch (CommandNotFoundException exception) {
+                Console.Error.WriteLine($"Unknown command '{exception.Command}'.");
+                return 3;
+            }
+
+            if (getopt.SelectedCommand is not null) {
+                if (!commandHandled) {
+                    Console.Error.WriteLine($"No action was provided for the '{getopt.SelectedCommand.Name}' command.");
+                    return 1;
+                }
+
+                return 0;
             }
 
             if (string.IsNullOrEmpty(fileToRead)) {
@@ -58,8 +95,8 @@ namespace getopt.net.reference.cs {
         static void PrintHelp(GetOpt getopt) {
             Console.WriteLine(getopt.GenerateHelpText(new HelpTextConfig {
                 ApplicationName = "getopt.net reference",
-                ApplicationVersion = "v1.0.0",
-                FooterText = "This is a reference implementation of getopt.net in C#.",
+                ApplicationVersion = "v1.1.0",
+                FooterText = "Examples: myapp config --create | myapp config --purge",
                 OptionConvention = OptionConvention.GnuPosix,
                 ShowSupportedConventions = true,
                 CopyrightDate = new DateTime(2023, 1, 1),
@@ -68,7 +105,7 @@ namespace getopt.net.reference.cs {
         }
 
         static void PrintVersion() {
-            Console.WriteLine("myapp v0.8.0");
+            Console.WriteLine("myapp v1.1.0");
         }
     }
 }

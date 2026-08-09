@@ -215,8 +215,7 @@ namespace getopt.net.tests {
         }
 
         [TestMethod]
-        [ExpectedException(typeof(ParseException))]
-        public void TestFilenameOnly_ExpectException() {
+        public void TestFilenameOnly_DoNotIgnoreInvalidOpts() {
             var opt = new GetOpt();
             opt.ShortOpts = string.Empty;
             opt.Options = Array.Empty<Option>();
@@ -224,7 +223,9 @@ namespace getopt.net.tests {
             opt.IgnoreInvalidOptions = false;
             opt.AllowWindowsConventions = true;
 
-            opt.GetNextOpt(out var _); // Something expressing the existence of filename.txt should happen here.
+            var optChar = (char)opt.GetNextOpt(out var optArg);
+            Assert.AreEqual(GetOpt.InvalidOptChar, optChar);
+            Assert.AreEqual("filename.txt", optArg);
         }
 
         [TestMethod]
@@ -250,8 +251,7 @@ namespace getopt.net.tests {
         }
 
         [TestMethod]
-        [ExpectedException(typeof(ParseException))]
-        public void TestOptionBeforeFilename_ExpectException() {
+        public void TestOptionBeforeFilename_DoNotIgnoreInvalidOpts() {
             var opt = new GetOpt();
             opt.ShortOpts = "t";
             opt.Options = Array.Empty<Option>();
@@ -262,7 +262,9 @@ namespace getopt.net.tests {
             var optChar = (char)opt.GetNextOpt(out var optArg);
             Assert.AreEqual('t', optChar);
             Assert.IsNull(optArg);
-            opt.GetNextOpt(out var _); // Something expressing the existence of filename.txt should happen here.
+            optChar = (char)opt.GetNextOpt(out optArg);
+            Assert.AreEqual(GetOpt.InvalidOptChar, optChar);
+            Assert.AreEqual("filename.txt", optArg);
         }
 
         [TestMethod]
@@ -284,19 +286,21 @@ namespace getopt.net.tests {
         }
 
         [TestMethod]
-        [ExpectedException(typeof(ParseException))]
-        public void TestFilenameBeforeOptionGnuParsing_ExpectException() {
+        public void TestFilenameBeforeOptionGnuInOrderParsing_DoNotIgnoreInvalidOpts() {
             var opt = new GetOpt();
-            opt.ShortOpts = "t";
+            opt.ShortOpts = "-t";
             opt.Options = Array.Empty<Option>();
             opt.AppArgs = new[] { "filename.txt", "/t" };
             opt.IgnoreInvalidOptions = false;
             opt.AllowWindowsConventions = true;
 
             var optChar = (char)opt.GetNextOpt(out var optArg);
+            Assert.AreEqual(GetOpt.NonOptChar, optChar);
+            Assert.AreEqual("filename.txt", optArg);
+
+            optChar = (char)opt.GetNextOpt(out optArg);
             Assert.AreEqual('t', optChar);
             Assert.IsNull(optArg);
-            opt.GetNextOpt(out var _); // Something expressing the existence of filename.txt should happen here.
         }
 
         [TestMethod]
@@ -338,8 +342,7 @@ namespace getopt.net.tests {
         }
 
         [TestMethod]
-        [ExpectedException(typeof(ParseException))]
-        public void TestFilenameBeforeOptionPosixParsing_ExpectException() {
+        public void TestFilenameBeforeOptionPosixParsing_DoNotIgnoreInvalidOpts() {
             var opt = new GetOpt();
             opt.ShortOpts = "t";
             opt.Options = Array.Empty<Option>();
@@ -348,7 +351,12 @@ namespace getopt.net.tests {
             opt.AllowWindowsConventions = true;
 
             var optChar = (char)opt.GetNextOpt(out var optArg);
+            Assert.AreEqual(GetOpt.InvalidOptChar, optChar);
+            Assert.AreEqual("filename.txt", optArg);
+
             optChar = (char)opt.GetNextOpt(out optArg);
+            Assert.AreEqual('t', optChar);
+            Assert.IsNull(optArg);
         }
 
         [TestMethod]

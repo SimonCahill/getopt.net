@@ -1,8 +1,5 @@
-﻿using System;
+﻿namespace getopt.net {
 
-namespace getopt.net {
-
-    using System.Linq;
     using System.Text;
 
     /// <summary>
@@ -51,11 +48,9 @@ namespace getopt.net {
         public static Option? FindOptionOrDefault(this Option[] list, string optName, StringComparison comparison) {
             if (string.IsNullOrEmpty(optName)) { throw new ArgumentNullException(nameof(optName), "optName must not be null!"); }
 
-            foreach (var option in list) {
-                if (option.Name?.Equals(optName, comparison) == true) { return option; }
-            }
+            var index = Array.FindIndex(list, o => o.Name?.Equals(optName, comparison) == true);
 
-            return null;
+            return index >= 0 ? list[index] : null;
         }
 
         /// <summary>
@@ -67,11 +62,8 @@ namespace getopt.net {
         public static Option? FindOptionOrDefault(this Option[]? list, char optVal) {
             if (list is null) { return null; }
 
-            foreach (var option in list) {
-                if (option.Value == optVal) { return option; }
-            }
-
-            return null;
+            var index = Array.FindIndex(list, o => o.Value == optVal);
+            return index >= 0 ? list[index] : null;
         }
 
         /// <summary>

@@ -13,6 +13,18 @@ Version 1.1.0 adds optional, backwards-compatible support for main commands and 
 # v1.0.1
 Version 1.0.1 introduces non-breaking bug fixes and improvements to the library.
 
+# v1.0.2
+Version 1.0.2 corrects handling of non-option arguments and unknown options.
+
+## Changes
+ - Non-option arguments no longer throw when `IgnoreInvalidOptions` is disabled
+ - Unknown GNU, Windows, and PowerShell options are correctly rejected or ignored
+ - Option lookups now return `null` when no configured option matches
+ - Added regression tests for invalid options and non-option arguments
+
+# v1.0.1
+Version 1.0.1 introduces non-breaking bug fixes and improvements to the library.
+
 ## Changes
  - Shortopt string generation now supports prefixes (`+` and `-`). See `ToShortOptString()`
  - Shortopt string generation now no longer returns a nullable string

@@ -28,6 +28,40 @@ There are several methods of installing and using getopt.net in your project.
 
 # Features
 
+### Optional main commands and subcommands
+
+Applications can define a single level of bare main commands. Each command owns a normal getopt option set, so all existing GNU/POSIX, Windows, PowerShell and parameter-file behavior remains available inside the command. Global options are parsed before the command; after a command is selected, only that command's options are active.
+
+```csharp
+var getopt = new GetOpt {
+    AppArgs = args,
+    Options = new[] {
+        new Option("verbose", ArgumentType.None, 'v', "Enable verbose output.")
+    },
+    ShortOpts = "v",
+    Commands = new[] {
+        new MainCommand(
+            "config",
+            "Manage application configuration.",
+            "cp",
+            new Option("create", ArgumentType.None, 'c', "Create configuration."),
+            new Option("purge", ArgumentType.None, 'p', "Purge configuration.")
+        )
+    }
+};
+
+while (getopt.GetNextOpt(out var optionArgument) is var option && option != -1) {
+    // getopt.SelectedCommand is "config" while handling --create or --purge.
+    // option contains 'c' for: myapp --verbose config --create
+}
+```
+
+`SelectedCommand` is populated as soon as the bare command is consumed. A command is not required, even when `Commands` is configured, which permits global invocations such as `myapp --version`.
+
+Command and long-option names remain case-sensitive by default. Set `CaseInsensitiveMatching = true` to use culture-independent case-insensitive matching; short options always remain case-sensitive.
+
+When `IgnoreInvalidOptions` is `false`, an unknown command raises `CommandMisspeltException` if a plausible spelling correction is available, or `CommandNotFoundException` otherwise. Both exceptions expose the entered `Command` and a read-only `PossibleCommands` list. When invalid options are ignored, an unknown command behaves like other invalid input: `GetNextOpt` returns `GetOpt.InvalidOptChar` and places the entered command in `optionArgument`.
+
 ### Full support for getopt-like command-line options
 
 **Separate options**
@@ -138,6 +172,8 @@ The exceptions *do* contain more info, however.
 
 ### Help text generation
 getopt.net can generate a help text for you, by simply calling `getopt.GenerateHelpText()`.
+
+When commands are configured, generated help adds `[command] [command options]` to the usage and a `Commands` section. Each command's getopt options are indented by one additional four-space tab stop below their main command.
 
 The behaviour of the help text generator can be customised to suit your needs.
 By default, getopt.net will not output application name, version or copyright information. This must be provided with the `HelpTextConfig` object.

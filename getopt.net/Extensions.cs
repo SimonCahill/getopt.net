@@ -20,7 +20,7 @@
         /// If the first character of optstring is '-', then each nonoption argv-element is handled as if it were the argument of an option with character code 1.
         /// </summary>
         Minus = '-'
-    } 
+    }
 
     /// <summary >
     /// This class contains extension methods specific to getopt.net.
@@ -35,9 +35,20 @@
         /// <param name="optName">The name of the argument to search for.</param>
         /// <returns>The <see cref="Option" /> with the name <paramref name="optName" />, or <code >null</code> if no option was found matching the name.</returns>
         public static Option? FindOptionOrDefault(this Option[] list, string optName) {
+            return FindOptionOrDefault(list, optName, StringComparison.InvariantCulture);
+        }
+
+        /// <summary>
+        /// Finds an option using the requested string comparison.
+        /// </summary>
+        /// <param name="list">The list of options to search.</param>
+        /// <param name="optName">The name of the argument to search for.</param>
+        /// <param name="comparison">The comparison used for option names.</param>
+        /// <returns>The matching option, or <code>null</code>.</returns>
+        public static Option? FindOptionOrDefault(this Option[] list, string optName, StringComparison comparison) {
             if (string.IsNullOrEmpty(optName)) { throw new ArgumentNullException(nameof(optName), "optName must not be null!"); }
 
-            var index = Array.FindIndex(list, o => o.Name?.Equals(optName, StringComparison.InvariantCulture) == true);
+            var index = Array.FindIndex(list, o => o.Name?.Equals(optName, comparison) == true);
 
             return index >= 0 ? list[index] : null;
         }
@@ -104,34 +115,39 @@
         /// Generates a help text from the arguments contained in <paramref name="getopt" />. See <see cref="GetOpt.Options" /> for more information.
         /// The method also takes a <see cref="HelpTextConfig" /> object to generate a help text. (<paramref name="generatorOptions" />)
         /// If <paramref name="generatorOptions" /> is null, it will be assigned the value <see cref="HelpTextConfig.Default" />.
-        /// 
+        ///
         /// The help text is generated in the following format:
         /// <code>
         /// programName programVersion
-        /// 
+        ///
         /// Usage:
         ///     programName [options]
-        /// 
+        ///
         /// Switches:
         ///     ...
-        /// 
+        ///
         /// Options:
         ///    ...
-        /// 
+        ///
+        /// Commands:
+        ///     command    Description
+        ///         -s, --subcommand    Description
+        ///
         /// footerText
         /// </code>
-        /// 
+        ///
         /// If <see cref="HelpTextConfig.ApplicationName"/> or <see cref="HelpTextConfig.ApplicationVersion" /> is null or empty, the first line will be omitted and the assembly name will be used in the usage.
         /// If <see cref="HelpTextConfig.FooterText" /> is null or empty, the footer will be omitted.
-        /// 
+        ///
         /// The switches section will only contain options with the ArgumentType set to <see cref="ArgumentType.None" />.
         /// The options section will only contain options with the ArgumentType set to <see cref="ArgumentType.Optional" /> or <see cref="ArgumentType.Required" />.
-        /// 
+        /// When <see cref="GetOpt.Commands"/> is configured, the commands section lists each main command and indents its options by one additional tab stop.
+        ///
         /// Each line containing the description of an option will be formatted as follows:
         /// <code>
         /// -s, --long-switch    Description of the switch
         /// </code>
-        /// 
+        ///
         /// where the lines will be justified to the longest name.
         /// </summary>
         /// <param name="getopt">The instance of <see cref="GetOpt"/> to use.</param>
@@ -141,8 +157,9 @@
             const string Tab = "    ";
             if (getopt is null) { throw new ArgumentNullException(nameof(getopt), "getopt must not be null!"); }
 
-            var options = getopt.Options;
-            if (options is null || options.Length == 0) { return string.Empty; }
+            var options = getopt.Options ?? Array.Empty<Option>();
+            var commands = getopt.Commands ?? Array.Empty<MainCommand>();
+            if (options.Length == 0 && commands.Length == 0) { return string.Empty; }
 
             var config = generatorOptions ?? HelpTextConfig.Default;
 
@@ -157,11 +174,20 @@
                         .AppendLine();
             }
 
-            string shortOptPrefix = config.OptionConvention == OptionConvention.Windows ? "/" : "-";
-            string longOptPrefix = config.OptionConvention == OptionConvention.Windows ? "/" : config.OptionConvention == OptionConvention.GnuPosix ? "--" : "-";
+            var shortOptPrefix = config.OptionConvention == OptionConvention.Windows ? "/" : "-";
+            var longOptPrefix = config.OptionConvention switch
+            {
+                OptionConvention.Windows => "/",
+                OptionConvention.GnuPosix => "--",
+                _ => "-"
+            };
 
             sBuilder.AppendLine("Usage:");
-            sBuilder.AppendLine($"{Tab}{config.ApplicationName ?? GetApplicationName()} [options]");
+            sBuilder.AppendLine(
+                commands.Length == 0
+                    ? $"{Tab}{config.ApplicationName ?? GetApplicationName()} [options]"
+                    : $"{Tab}{config.ApplicationName ?? GetApplicationName()} [options] [command] [command options]"
+            );
             if (config.ShowSupportedConventions) {
                 sBuilder.AppendLine(
                     $"""
@@ -175,19 +201,19 @@
             }
             sBuilder.AppendLine();
 
-            var longestName = options.Max(o => o.Name?.Length ?? 0);
+            var longestName = options.Length == 0 ? 0 : options.Max(o => o.Name?.Length ?? 0);
             // Align longestName to the next multiple of 4
             longestName = (longestName + 3) / 4 * 4;
 
             sBuilder.AppendLine("Switches:");
             foreach (var opt in options.Where(o => o.ArgumentType == ArgumentType.None)) {
-                sBuilder.AppendLine(string.Format("{0}{1}{2}, {3}{4}{5}", Tab, shortOptPrefix, (char)opt.Value, longOptPrefix, opt.Name?.PadRight(longestName), opt.Description ?? string.Empty));
+                sBuilder.AppendLine($"{Tab}{shortOptPrefix}{(char)opt.Value}, {longOptPrefix}{opt.Name?.PadRight(longestName)}{opt.Description ?? string.Empty}");
             }
             sBuilder.AppendLine();
 
             sBuilder.AppendLine("Options:");
             foreach (var opt in options.Where(o => o.ArgumentType != ArgumentType.None)) {
-                var line = string.Format("{0}{1}{2}, {3}{4}{5}", Tab, shortOptPrefix, (char)opt.Value, longOptPrefix, opt.Name?.PadRight(longestName), opt.Description ?? string.Empty);
+                var line = $"{Tab}{shortOptPrefix}{(char)opt.Value}, {longOptPrefix}{opt.Name?.PadRight(longestName)}{opt.Description ?? string.Empty}";
 
                 // If line is > config.MaxWidth, split it into multiple lines and align the description
                 if (line.Length > config.MaxWidth) {
@@ -206,11 +232,11 @@
                         var split = desc.Substring(0, config.MaxWidth - longestName - 10);
                         var splitIndex = split.LastIndexOf(' ');
 
-                        sBuilder.AppendLine(string.Format("{0}{1}", beginWhitespace, split.Substring(0, splitIndex)));
+                        sBuilder.AppendLine($"{beginWhitespace}{split.Substring(0, splitIndex)}");
                         desc = desc.Substring(splitIndex + 1);
                     }
 
-                    sBuilder.AppendLine(string.Format("{0}{1}{2}, {3}{4}{5}", Tab, shortOptPrefix, (char)opt.Value, longOptPrefix, opt.Name?.PadRight(longestName), desc));
+                    sBuilder.AppendLine($"{Tab}{shortOptPrefix}{(char)opt.Value}, {longOptPrefix}{opt.Name?.PadRight(longestName)}{desc}");
                 } else {
                     sBuilder.AppendLine(line);
                 }
@@ -219,11 +245,53 @@
             }
             sBuilder.AppendLine();
 
+            if (commands.Length > 0) {
+                var longestCommandName = commands.Max(command => command.Name?.Length ?? 0);
+                var commandOptions = commands.SelectMany(command => command.Options ?? Array.Empty<Option>()).ToArray();
+                var longestCommandOptionName = commandOptions.Length == 0 ? 0 : commandOptions.Max(option => option.Name?.Length ?? 0);
+                longestCommandOptionName = (longestCommandOptionName + 3) / 4 * 4;
+
+                sBuilder.AppendLine("Commands:");
+                foreach (var command in commands) {
+                    AppendHelpLine(sBuilder, Tab, command.Name.PadRight(longestCommandName), command.Description, config.MaxWidth);
+
+                    foreach (var option in command.Options ?? Array.Empty<Option>()) {
+                        var optionLabel = $"{shortOptPrefix}{(char)option.Value}, {longOptPrefix}{option.Name?.PadRight(longestCommandOptionName)}";
+                        AppendHelpLine(sBuilder, Tab + Tab, optionLabel, option.Description ?? string.Empty, config.MaxWidth);
+                    }
+                }
+                sBuilder.AppendLine();
+            }
+
             if (!string.IsNullOrEmpty(config.FooterText)) {
                 sBuilder.AppendLine(config.FooterText);
             }
 
             return sBuilder.ToString();
+        }
+
+        private static void AppendHelpLine(StringBuilder builder, string indentation, string label, string description, int maxWidth) {
+            var descriptionPrefix = $"{indentation}{label} ";
+            if (string.IsNullOrEmpty(description) || descriptionPrefix.Length + description.Length <= maxWidth) {
+                builder.AppendLine(descriptionPrefix + description);
+                return;
+            }
+
+            var availableWidth = Math.Max(1, maxWidth - descriptionPrefix.Length);
+            var remaining = description;
+            var firstLine = true;
+            while (remaining.Length > availableWidth) {
+                var splitIndex = remaining.LastIndexOf(' ', availableWidth);
+                if (splitIndex <= 0) { splitIndex = availableWidth; }
+
+                builder.Append(firstLine ? descriptionPrefix : new string(' ', descriptionPrefix.Length));
+                builder.AppendLine(remaining.Substring(0, splitIndex));
+                remaining = remaining.Substring(splitIndex).TrimStart();
+                firstLine = false;
+            }
+
+            builder.Append(firstLine ? descriptionPrefix : new string(' ', descriptionPrefix.Length));
+            builder.AppendLine(remaining);
         }
 
         /// <summary>

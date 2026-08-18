@@ -22,16 +22,17 @@ GitHub: https://github.com/SimonCahill/getopt.net</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <!--<ApplicationIcon >../img/getopt.net-icon.ico</ApplicationIcon>-->
-    <Version>1.0.2</Version>
+    <Version>1.1.0</Version>
     <PackageTags>getopt; getopt.net; argument-parsing; parser; arguments; options; getopt_long; options; command-line; cross-platform; linux; macos; windows</PackageTags>
-    <PackageReleaseNotes># v1.0.2
-Version 1.0.2 corrects handling of non-option arguments and unknown options.
+    <PackageReleaseNotes># v1.1.0
+Version 1.1.0 introduces optional main commands with getopt-style subcommands.
 
 ## Changes
- - Non-option arguments no longer throw when IgnoreInvalidOptions is disabled
- - Unknown GNU, Windows, and PowerShell options are correctly rejected or ignored
- - Option lookups now return null when no configured option matches
- - Added regression tests for invalid options and non-option arguments
+ - Added optional main commands with command-specific long and short options
+ - Added selected-command state without changing the existing `GetNextOpt` contract
+ - Added opt-in culture-independent case-insensitive matching
+ - Added spelling suggestions and command-specific exceptions
+ - Added command-aware help generation and tests
 
     </PackageReleaseNotes>
     <Title>getopt.net</Title>

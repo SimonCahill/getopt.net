@@ -12,7 +12,7 @@
         None,
 
         /// <summary>
-        /// If the first character of optstring is '+' or the environment variable POSIXLY_CORRECT is set, then option processing stops as soon as a nonoption argument is encountered.
+        /// Requests the engine's POSIX stop condition, also enabled by the POSIXLY_CORRECT environment variable.
         /// </summary>
         Plus = '+',
 
@@ -70,7 +70,7 @@
         /// Creates a short opt string from an array of <see cref="Option"/> objects.
         /// </summary>
         /// <param name="list">The options to convert.</param>
-        /// <returns><code>null</code> if the option list is empty or null. A string contain a shortopt-form string representing all the options from <paramref name="list"/>.</returns>
+        /// <returns>The aliases and argument-mode markers in declaration order, or an empty string for a null or empty option list.</returns>
         public static string ToShortOptString(this Option[] list) {
             if (list is null || list.Length == 0) { return string.Empty; }
 
@@ -97,7 +97,7 @@
         /// </summary>
         /// <param name="list">The options to convert.</param>
         /// <param name="prefix">The prefix to use for the shortopt string.</param>
-        /// <returns><code>null</code> if the option list is empty or null. A string contain a shortopt-form string representing all the options from <paramref name="list"/>.</returns>
+        /// <returns>The mode prefix followed by aliases and argument markers, or an empty string for a null or empty option list.</returns>
         public static string ToShortOptString(this Option[] list, OptStringPrefix prefix) {
             if (list is null || list.Length == 0) { return string.Empty; }
 
@@ -347,6 +347,7 @@
         /// <summary>
         /// Gets the name of the application.
         /// </summary>
+        /// <returns>The entry assembly's name, or <c>Unknown</c> when the entry assembly or its name is unavailable.</returns>
         public static string GetApplicationName() {
             return System.Reflection.Assembly.GetEntryAssembly()?.GetName().Name ?? "Unknown";
         }

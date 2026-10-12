@@ -15,7 +15,7 @@ namespace getopt.net {
         /// <summary>
         /// Object constructor - instantiates a new instance of this class.
         /// </summary>
-        /// <param name="optChar">The value of the option passed.</param>
+        /// <param name="optChar">The option identifier accepted for compatibility; this constructor currently does not assign OptChar.</param>
         /// <param name="optArg">The option's argument (if any)</param>
         public CommandOption(int optChar, object? optArg = null) {
             ArgumentType = optArg?.GetType();
@@ -30,7 +30,7 @@ namespace getopt.net {
         /// <summary>
         /// The type of the argument that was received.
         /// 
-        /// Possible types are int, string, bool, double
+        /// Contains the runtime type of OptionArgument, or null when no argument was supplied.
         /// </summary>
         public Type? ArgumentType { get; set; }
 

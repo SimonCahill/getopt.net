@@ -55,6 +55,7 @@ namespace getopt.net {
         /// <summary>
         /// Gets a configuration for the GNU/POSIX convention.
         /// </summary>
+        /// <returns>A fresh configuration with GNU/POSIX labels, a width of 160 characters and no application metadata.</returns>
         public static HelpTextConfig GnuConfig() => new HelpTextConfig {
             MaxWidth = 160,
             OptionConvention = OptionConvention.GnuPosix,
@@ -66,6 +67,7 @@ namespace getopt.net {
         /// <summary>
         /// Gets a configuration for the Windows convention.
         /// </summary>
+        /// <returns>A fresh configuration with slash-prefixed labels, a width of 160 characters and no application metadata.</returns>
         public static HelpTextConfig WindowsConfig() => new HelpTextConfig {
             MaxWidth = 160,
             OptionConvention = OptionConvention.Windows,
@@ -77,6 +79,7 @@ namespace getopt.net {
         /// <summary>
         /// Gets a configuration for the Powershell convention.
         /// </summary>
+        /// <returns>A fresh configuration with single-dash long-option labels, a width of 160 characters and no application metadata.</returns>
         public static HelpTextConfig PowershellConfig() => new HelpTextConfig {
             MaxWidth = 160,
             OptionConvention = OptionConvention.Powershell,

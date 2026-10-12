@@ -105,6 +105,10 @@
         /// <summary>
         /// Gets or sets the arguments to parse.
         /// </summary>
+        /// <remarks>
+        /// Parsing can rewrite this array and parameter-file expansion can replace it with a larger array.
+        /// Assigning a new array does not reset the cursor or command state; use a fresh parser for a new invocation.
+        /// </remarks>
         public string[] AppArgs {
             get => m_appArgs;
             set => m_appArgs = value;
@@ -117,7 +121,7 @@
         public bool OnlyShortOpts { get; set; } = false;
 
         /// <summary>
-        /// Gets or sets a value indicating whether or not to ignore empty values.
+        /// Gets or sets whether an empty input element ends the current parse call instead of throwing.
         /// Default: <code  >true</code>
         /// </summary>
         public bool IgnoreEmptyOptions { get; set; } = true;
@@ -196,10 +200,10 @@
         public bool AllowParamFiles { get; set; } = false;
 
         /// <summary>
-        /// Either enables or disabled exceptions entirely.
-        /// For more specific control over exceptions, see the other options provided by GetOpt.
+        /// Gets or sets the aggregate ignore flags for empty input, empty options, missing arguments and invalid options.
+        /// Structural errors such as attempting long-option parsing without definitions can still throw.
         /// </summary>
-        /// <value><code >true</code> if exceptions are enabled, <code >false</code> otherwise.</value>
+        /// <value>True when all ignore flags are enabled; assigning false clears every ignore flag.</value>
         public bool AllExceptionsDisabled {
             get => IgnoreEmptyAppArgs && IgnoreEmptyOptions && IgnoreMissingArgument && IgnoreInvalidOptions && IgnoreEmptyAppArgs;
             set => IgnoreEmptyAppArgs = IgnoreEmptyOptions = IgnoreMissingArgument = IgnoreInvalidOptions = IgnoreEmptyAppArgs = value;
@@ -220,8 +224,8 @@
         /// Specialised constructor.
         /// </summary>
         /// <param name="appArgs">The arguments passed to the application.</param>
-        /// <param name="shortOpts"></param>
-        /// <param name="options"></param>
+        /// <param name="shortOpts">Short aliases, with a colon for required values, a semicolon for optional values and an optional mode prefix.</param>
+        /// <param name="options">Long-option definitions and fallback argument modes for short aliases.</param>
         public GetOpt(string[] appArgs, string shortOpts, params Option[] options) {
             AppArgs = appArgs;
             ShortOpts = shortOpts;
@@ -281,24 +285,29 @@
         /// > written to expect options and other argv-elements in any order
         /// > and that care about the ordering of the two.)
         /// </remarks>
-        /// <returns></returns>
+        /// <returns>True when the active short-option specification begins with a minus sign; false otherwise.</returns>
         protected bool MustReturnChar1() => ActiveShortOpts?.Length > 0 && ActiveShortOpts[0] == '-';
 
         /// <summary>
-        /// If the first character of
-        /// ShortOpts is '+' or the environment variable POSIXLY_CORRECT is
-        /// set, then option processing stops as soon as a nonoption argument
-        /// is encountered.
+        /// Checks whether the active short-option specification or POSIXLY_CORRECT enables the engine's POSIX stop condition.
         /// </summary>
-        /// <returns><code >true</code> if parsing stops when the first non-option string is found.</returns>
+        /// <returns>True when the active specification starts with a plus sign or POSIXLY_CORRECT is present.</returns>
+        /// <remarks>The current engine consults this condition when consuming a separate required option value.</remarks>
         protected bool MustStopParsing() => ActiveShortOpts?.Length > 0 && ActiveShortOpts[0] == '+' || Environment.GetEnvironmentVariable("POSIXLY_CORRECT") is not null;
 
         /// <summary>
         /// Gets the next option in the list.
         /// </summary>
         /// <param name="outOptArg">Out var; the argument for the option (if applicable).</param>
-        /// <returns>The next option.</returns>
-        /// <exception cref="ParseException">If ignoring errors is disabled (default) and an error occurs.</exception>
+        /// <returns>
+        /// A short alias or long-option identifier, -1 at the end of input, or an error/operand sentinel.
+        /// Ignored unknown options return <see cref="InvalidOptChar"/>; ignored missing values return <see cref="MissingArgChar"/>.
+        /// Operands return <see cref="NonOptChar"/> in in-order or post-double-dash mode and <see cref="InvalidOptChar"/> otherwise.
+        /// </returns>
+        /// <exception cref="ParseException">A nonignored input error or an invalid parser configuration is encountered.</exception>
+        /// <exception cref="CommandMisspeltException">An unknown command has plausible spelling suggestions and invalid options are not ignored.</exception>
+        /// <exception cref="CommandNotFoundException">An unknown command has no plausible suggestions and invalid options are not ignored.</exception>
+        /// <remarks>Consumes state on this instance. A bare command updates <see cref="SelectedCommand"/> without returning a separate command token.</remarks>
         public int GetNextOpt(out string? outOptArg) {
             if (AppArgs.Length == 0) {
                 if (!IgnoreEmptyAppArgs) {
@@ -475,6 +484,10 @@
         /// Gets the next option in the list, returning an object containing more detailled information about the option.
         /// </summary>
         /// <returns>An instance of <see cref="CommandOption"/> containing more detailled information about the option and argument (if applicable).</returns>
+        /// <remarks>
+        /// Tries boolean, double, float and integer conversion in that order, using the current culture, then retains the raw string.
+        /// For the integer option identifier, use the out-argument overload; the current CommandOption constructor does not store that identifier.
+        /// </remarks>
         public CommandOption GetNextOpt() {
             var optChar = GetNextOpt(out var optArg);
 
@@ -653,7 +666,7 @@
         /// Gets a value indicating whether or not a short option requires an argument.
         /// </summary>
         /// <param name="shortOpt">The opt to check for.</param>
-        /// <returns><code >true</code> if the short opt requires an argument.</returns>
+        /// <returns>The declared argument mode, or null for an ignored unknown short option.</returns>
         /// <exception cref="ParseException">If ignoring errors is disabled (default) and an error occurs during parsing.</exception>
         protected ArgumentType? ShortOptRequiresArg(char shortOpt) {
             if (ActiveShortOpts is not null && !string.IsNullOrEmpty(ActiveShortOpts)) {
@@ -843,7 +856,7 @@
         /// </remarks>
         /// <param name="arg">The argument to check.</param>
         /// <param name="paramFile">An out param containing either null or the path to the file.</param>
-        /// <returns><code>true</code> if the passed argument is a valid paramfile option. <code>false</code> otherwise.</returns>
+        /// <returns>True for parameter-file syntax when enabled, even if the file is missing; false otherwise.</returns>
         protected bool IsParamFileArg(string arg, out string? paramFile) {
             paramFile = null; // pre-set this so we don't have to do it everywhere
             if (string.IsNullOrEmpty(arg) || !AllowParamFiles || arg.Length < 2) { return false; }
@@ -863,6 +876,11 @@
         /// Reads the incoming param file and adds the contents to <see cref="AppArgs"/>
         /// </summary>
         /// <param name="paramFile">The file to read.</param>
+        /// <remarks>
+        /// File lines are appended after the original input rather than inserted at the reference token.
+        /// Empty and comment lines leave empty buffer slots, which are handled by the ordinary empty-input rules.
+        /// File I/O exceptions propagate to the caller.
+        /// </remarks>
         protected void ReadParamFile(FileInfo paramFile) {
             if (paramFile == null || !paramFile.Exists) { return; }
 

@@ -22,17 +22,17 @@ GitHub: https://github.com/SimonCahill/getopt.net</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <!--<ApplicationIcon >../img/getopt.net-icon.ico</ApplicationIcon>-->
-    <Version>1.1.0</Version>
+    <Version>1.2.0</Version>
     <PackageTags>getopt; getopt.net; argument-parsing; parser; arguments; options; getopt_long; options; command-line; cross-platform; linux; macos; windows</PackageTags>
-    <PackageReleaseNotes># v1.1.0
-Version 1.1.0 introduces optional main commands with getopt-style subcommands.
+    <PackageReleaseNotes># v1.2.0
+Version 1.2.0 adds fluent and attribute-based typed C# APIs alongside the existing getopt API.
 
 ## Changes
- - Added optional main commands with command-specific long and short options
- - Added selected-command state without changing the existing `GetNextOpt` contract
- - Added opt-in culture-independent case-insensitive matching
- - Added spelling suggestions and command-specific exceptions
- - Added command-aware help generation and tests
+ - Added ParserBuilder and CLI attributes with shared typed binding
+ - Added typed command models, positional arguments, repeated values and invariant conversion
+ - Added Parse and TryParse with structured input errors
+ - Added typed help generation, including long-only options
+ - Preserved existing APIs, command-line conventions and target frameworks
 
     </PackageReleaseNotes>
     <Title>getopt.net</Title>

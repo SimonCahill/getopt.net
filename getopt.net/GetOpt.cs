@@ -399,9 +399,12 @@
 
         private static int SuggestionThreshold(int inputLength, int candidateLength) {
             var length = Math.Max(inputLength, candidateLength);
-            if (length <= 4) { return 1; }
-            if (length <= 8) { return 2; }
-            return 3;
+
+            return length switch {
+                <= 4 => 1,
+                <= 8 => 2,
+                _ => 3
+            };
         }
 
         private static int DamerauLevenshteinDistance(string source, string target) {
@@ -484,13 +487,16 @@
                 case ArgumentType.Required:
                     if (optArg == null && (CurrentIndex + 1 >= AppArgs.Length || IsLongOption(AppArgs[CurrentIndex + 1]) || IsShortOption(AppArgs[CurrentIndex + 1]))) {
                         ++m_currentIndex;
-                        if (IgnoreMissingArgument) {
-                            optArg = AppArgs[CurrentIndex - 1];
-                            return MissingArgChar;
-                        } else {
-                            throw new ParseException(AppArgs[CurrentIndex - 1], "Missing required argument!");
+                        if (!IgnoreMissingArgument) {
+                            throw new ParseException(AppArgs[CurrentIndex - 1], "Missing required argument!", true);
                         }
-                    } else if (optArg != null) { break; }
+
+                        optArg = AppArgs[CurrentIndex - 1];
+                        return MissingArgChar;
+
+                    }
+
+                    if (optArg != null) { break; }
 
                     optArg = AppArgs[CurrentIndex + 1];
                     if (MustStopParsing()) { // POSIX behaviour desired
@@ -533,19 +539,20 @@
                 return false;
             }
 
-            if (!IsLongOption(AppArgs[CurrentIndex + 1]) && !IsShortOption(AppArgs[CurrentIndex + 1])) {
-                arg = AppArgs[CurrentIndex + 1];
-
-                if (MustStopParsing()) {
-                    m_currentIndex = AppArgs.Length; // POSIX behaviour desired
-                } else {
-                    incrementCurrentIndex = true;
-                }
-
-                return true;
+            if (IsLongOption(AppArgs[CurrentIndex + 1]) || IsShortOption(AppArgs[CurrentIndex + 1])) {
+                return false;
             }
 
-            return false;
+            arg = AppArgs[CurrentIndex + 1];
+
+            if (MustStopParsing()) {
+                m_currentIndex = AppArgs.Length; // POSIX behaviour desired
+            } else {
+                incrementCurrentIndex = true;
+            }
+
+            return true;
+
         }
 
         /// <summary>
@@ -559,34 +566,38 @@
             var curOpt = AppArgs[CurrentIndex][m_optPosition];
 
             var argType = ShortOptRequiresArg(curOpt);
-            if (argType is null) {
-                ResetOptPosition();
-                m_currentIndex++;
-                return InvalidOptChar;
-            } else if (argType is ArgumentType type) {
-                bool incrementCurrentIndex;
+            switch (argType) {
+                case null:
+                    ResetOptPosition();
+                    m_currentIndex++;
+                    return InvalidOptChar;
+                case ArgumentType type: {
+                    bool incrementCurrentIndex;
 
-                switch (type) {
-                    default:
-                        if (AppArgs[CurrentIndex].Length > AppArgs[CurrentIndex].IndexOf(curOpt) + 1) {
-                            m_optPosition++;
-                            return curOpt;
-                        }
-                        break;
-                    case ArgumentType.Optional:
-                        TryGetArgumentForShortOption(ref optArg, out incrementCurrentIndex);
-                        if (incrementCurrentIndex) { m_currentIndex++; }
-                        break;
-                    case ArgumentType.Required:
-                        if (!TryGetArgumentForShortOption(ref optArg, out incrementCurrentIndex)) {
-                            if (IgnoreMissingArgument) {
-                                if (incrementCurrentIndex) { m_currentIndex++; }
-                                return MissingArgChar;
+                    switch (type) {
+                        default:
+                            if (AppArgs[CurrentIndex].Length > AppArgs[CurrentIndex].IndexOf(curOpt) + 1) {
+                                m_optPosition++;
+                                return curOpt;
                             }
-                            else { throw new ParseException(curOpt.ToString(), "Missing argument for option!"); }
-                        }
-                        if (incrementCurrentIndex) { m_currentIndex++; }
-                        break;
+                            break;
+                        case ArgumentType.Optional:
+                            TryGetArgumentForShortOption(ref optArg, out incrementCurrentIndex);
+                            if (incrementCurrentIndex) { m_currentIndex++; }
+                            break;
+                        case ArgumentType.Required:
+                            if (!TryGetArgumentForShortOption(ref optArg, out incrementCurrentIndex)) {
+                                if (IgnoreMissingArgument) {
+                                    if (incrementCurrentIndex) { m_currentIndex++; }
+                                    return MissingArgChar;
+                                }
+                                else { throw new ParseException(curOpt.ToString(), "Missing argument for option!", true); }
+                            }
+                            if (incrementCurrentIndex) { m_currentIndex++; }
+                            break;
+                    }
+
+                    break;
                 }
             }
 

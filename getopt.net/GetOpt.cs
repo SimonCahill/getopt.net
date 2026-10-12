@@ -97,6 +97,9 @@
         /// </summary>
         public bool DoubleDashStopsParsing { get; set; } = true;
 
+        /// <summary>
+        /// Stores the mutable input buffer, which can be rewritten during parsing and expanded by parameter files.
+        /// </summary>
         private string[] m_appArgs = Array.Empty<string>();
 
         /// <summary>
@@ -235,10 +238,19 @@
         /// </summary>
         protected int m_optPosition = 1; // this applies to short opts only, where [0] == '-'
 
+        /// <summary>
+        /// Gets the selected command's long options, or global options before command selection.
+        /// </summary>
         private Option[] ActiveOptions => SelectedCommand?.Options ?? Options;
 
+        /// <summary>
+        /// Gets the selected command's short-option specification, falling back to the global specification when it is null.
+        /// </summary>
         private string? ActiveShortOpts => SelectedCommand?.ShortOpts ?? ShortOpts;
 
+        /// <summary>
+        /// Gets the invariant-culture comparison selected for command and long-option names.
+        /// </summary>
         private StringComparison NameComparison => CaseInsensitiveMatching ? StringComparison.InvariantCultureIgnoreCase : StringComparison.InvariantCulture;
 
         /// <summary>
@@ -352,6 +364,16 @@
             return MustReturnChar1() ? NonOptChar : InvalidOptChar;
         }
 
+        /// <summary>
+        /// Consumes a bare command and continues parsing within its option scope.
+        /// </summary>
+        /// <param name="optArg">The next option argument, or the unknown command name when errors are ignored.</param>
+        /// <returns>The next parser result after command selection, or the invalid-option sentinel for an ignored unknown command.</returns>
+        /// <remarks>
+        /// A command has no separate return code. SelectedCommand is updated even when the command is the last input token.
+        /// </remarks>
+        /// <exception cref="CommandMisspeltException">Strict matching fails and plausible command suggestions exist.</exception>
+        /// <exception cref="CommandNotFoundException">Strict matching fails without plausible command suggestions.</exception>
         private int ParseMainCommand(out string? optArg) {
             var commandName = AppArgs[CurrentIndex];
             var command = Array.Find(Commands, item => item.Name.Equals(commandName, NameComparison));
@@ -377,6 +399,14 @@
             return InvalidOptChar;
         }
 
+        /// <summary>
+        /// Finds equally close command names within the accepted spelling-distance threshold.
+        /// </summary>
+        /// <param name="commandName">The command spelling entered by the user.</param>
+        /// <returns>Closest acceptable names in declaration order, or an empty array.</returns>
+        /// <remarks>
+        /// Names are normalized with invariant uppercase for suggestions, independently of exact command-matching case settings.
+        /// </remarks>
         private string[] FindCommandSuggestions(string commandName) {
             if (Commands.Length == 0) { return Array.Empty<string>(); }
 
@@ -397,6 +427,12 @@
                 .ToArray();
         }
 
+        /// <summary>
+        /// Selects the maximum edit distance considered plausible for a command spelling.
+        /// </summary>
+        /// <param name="inputLength">Length of the entered command.</param>
+        /// <param name="candidateLength">Length of a declared command.</param>
+        /// <returns>One for lengths through four, two through eight, and three for longer names, using the larger length.</returns>
         private static int SuggestionThreshold(int inputLength, int candidateLength) {
             var length = Math.Max(inputLength, candidateLength);
 
@@ -407,6 +443,12 @@
             };
         }
 
+        /// <summary>
+        /// Computes an edit distance allowing insertion, deletion, substitution and adjacent transposition.
+        /// </summary>
+        /// <param name="source">The normalized input spelling.</param>
+        /// <param name="target">The normalized declared spelling.</param>
+        /// <returns>The restricted Damerau-Levenshtein, or optimal string alignment, distance between the strings.</returns>
         private static int DamerauLevenshteinDistance(string source, string target) {
             var distances = new int[source.Length + 1, target.Length + 1];
             for (var i = 0; i <= source.Length; i++) { distances[i, 0] = i; }

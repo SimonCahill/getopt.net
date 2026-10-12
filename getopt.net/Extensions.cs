@@ -157,6 +157,14 @@
             return GenerateHelpText(getopt, generatorOptions, null);
         }
 
+        /// <summary>
+        /// Renders shared help while optionally using typed metadata to omit undeclared short aliases.
+        /// </summary>
+        /// <param name="getopt">The parser definitions and enabled conventions to describe.</param>
+        /// <param name="generatorOptions">Formatting and application metadata, or null for defaults.</param>
+        /// <param name="shortAlias">An alias resolver for typed definitions, or null to preserve legacy formatting.</param>
+        /// <returns>Formatted help, or an empty string when no options or commands exist.</returns>
+        /// <exception cref="ArgumentNullException">The parser is null.</exception>
         internal static string GenerateHelpText(GetOpt getopt, HelpTextConfig? generatorOptions, Func<Option, char?>? shortAlias) {
             const string Tab = "    ";
             if (getopt is null) { throw new ArgumentNullException(nameof(getopt), "getopt must not be null!"); }
@@ -286,12 +294,32 @@
             return sBuilder.ToString();
         }
 
+        /// <summary>
+        /// Builds an option label using only its declared aliases.
+        /// </summary>
+        /// <param name="option">The option whose long name is displayed.</param>
+        /// <param name="shortAlias">Resolves its declared short alias, or null for a long-only option.</param>
+        /// <param name="shortPrefix">The short-option prefix for the selected help convention.</param>
+        /// <param name="longPrefix">The long-option prefix for the selected help convention.</param>
+        /// <param name="width">The padding width for the long name.</param>
+        /// <returns>A padded option label with an optional short alias and separator.</returns>
         private static string TypedOptionLabel(Option option, Func<Option, char?> shortAlias, string shortPrefix, string longPrefix, int width) {
             var alias = shortAlias(option);
 
             return $"{(alias.HasValue ? shortPrefix + alias.Value + ", " : string.Empty)}{longPrefix}{option.Name?.PadRight(width)}";
         }
 
+        /// <summary>
+        /// Wraps a help description while aligning continuation lines beneath its first character.
+        /// </summary>
+        /// <param name="builder">The destination help-text buffer.</param>
+        /// <param name="indentation">Indentation for the option or command scope.</param>
+        /// <param name="label">The already padded option or command label.</param>
+        /// <param name="description">The description to wrap.</param>
+        /// <param name="maxWidth">The desired total width; a label wider than this limit is still emitted in full.</param>
+        /// <remarks>
+        /// Long words are split when no whitespace boundary fits. At least one description character is emitted per wrapped line.
+        /// </remarks>
         private static void AppendHelpLine(StringBuilder builder, string indentation, string label, string description, int maxWidth) {
             var descriptionPrefix = $"{indentation}{label} ";
             if (string.IsNullOrEmpty(description) || descriptionPrefix.Length + description.Length <= maxWidth) {

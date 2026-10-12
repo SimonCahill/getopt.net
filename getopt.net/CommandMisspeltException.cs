@@ -16,6 +16,11 @@ namespace getopt.net {
         /// <param name="possibleCommands">Possible intended command names.</param>
         public CommandMisspeltException(string command, IEnumerable<string> possibleCommands): this(command, possibleCommands.ToArray()) { }
 
+        /// <summary>
+        /// Initializes the error from an already materialized suggestion list.
+        /// </summary>
+        /// <param name="command">The entered command spelling.</param>
+        /// <param name="possibleCommands">Suggested command names in declaration order.</param>
         private CommandMisspeltException(string command, string[] possibleCommands): base(command, BuildMessage(command, possibleCommands)) {
             Command = command;
             PossibleCommands = Array.AsReadOnly(possibleCommands);
@@ -31,6 +36,12 @@ namespace getopt.net {
         /// </summary>
         public IReadOnlyList<string> PossibleCommands { get; }
 
+        /// <summary>
+        /// Formats an unknown-command error with the nearest suggested spellings.
+        /// </summary>
+        /// <param name="command">The entered command spelling.</param>
+        /// <param name="possibleCommands">Suggested command names to include in the message.</param>
+        /// <returns>A human-readable message containing the command and its suggestions.</returns>
         private static string BuildMessage(string command, IEnumerable<string> possibleCommands) {
             var commands = possibleCommands.ToArray();
             return $"Command '{command}' was not found. Did you mean: {string.Join(", ", commands)}?";

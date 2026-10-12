@@ -28,10 +28,19 @@ namespace getopt.net {
             Option = optString;
         }
 
+        /// <summary>
+        /// Creates a parser failure with internal missing-argument classification for typed adapters.
+        /// </summary>
+        /// <param name="optString">The option that caused the failure.</param>
+        /// <param name="msg">The existing human-readable error message.</param>
+        /// <param name="isMissingArgument">Whether the failure indicates a missing required value.</param>
         internal ParseException(string? optString, string msg, bool isMissingArgument): this(optString, msg) {
             IsMissingArgument = isMissingArgument;
         }
 
+        /// <summary>
+        /// Gets whether a required argument was missing, allowing adapters to classify errors without inspecting message text.
+        /// </summary>
         internal bool IsMissingArgument { get; }
 
 		/// <inheritdoc />

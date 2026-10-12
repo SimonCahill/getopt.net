@@ -28,6 +28,12 @@ namespace getopt.net {
             Option = optString;
         }
 
+        internal ParseException(string? optString, string msg, bool isMissingArgument): this(optString, msg) {
+            IsMissingArgument = isMissingArgument;
+        }
+
+        internal bool IsMissingArgument { get; }
+
 		/// <inheritdoc />
 		public override string ToString() {
 			if (string.IsNullOrEmpty(Option)) {

@@ -154,6 +154,10 @@
         /// <param name="generatorOptions">(Optional) Customised generator configuration.</param>
         /// <returns>A string value containing the help text.</returns>
         public static string GenerateHelpText(this GetOpt getopt, HelpTextConfig? generatorOptions = null) {
+            return GenerateHelpText(getopt, generatorOptions, null);
+        }
+
+        internal static string GenerateHelpText(GetOpt getopt, HelpTextConfig? generatorOptions, Func<Option, char?>? shortAlias) {
             const string Tab = "    ";
             if (getopt is null) { throw new ArgumentNullException(nameof(getopt), "getopt must not be null!"); }
 
@@ -207,12 +211,22 @@
 
             sBuilder.AppendLine("Switches:");
             foreach (var opt in options.Where(o => o.ArgumentType == ArgumentType.None)) {
+                if (shortAlias is not null) {
+                    AppendHelpLine(sBuilder, Tab, TypedOptionLabel(opt, shortAlias, shortOptPrefix, longOptPrefix, longestName), opt.Description ?? string.Empty, config.MaxWidth);
+                    continue;
+                }
+
                 sBuilder.AppendLine($"{Tab}{shortOptPrefix}{(char)opt.Value}, {longOptPrefix}{opt.Name?.PadRight(longestName)}{opt.Description ?? string.Empty}");
             }
             sBuilder.AppendLine();
 
             sBuilder.AppendLine("Options:");
             foreach (var opt in options.Where(o => o.ArgumentType != ArgumentType.None)) {
+                if (shortAlias is not null) {
+                    AppendHelpLine(sBuilder, Tab, TypedOptionLabel(opt, shortAlias, shortOptPrefix, longOptPrefix, longestName), opt.Description ?? string.Empty, config.MaxWidth);
+                    continue;
+                }
+
                 var line = $"{Tab}{shortOptPrefix}{(char)opt.Value}, {longOptPrefix}{opt.Name?.PadRight(longestName)}{opt.Description ?? string.Empty}";
 
                 // If line is > config.MaxWidth, split it into multiple lines and align the description
@@ -256,7 +270,9 @@
                     AppendHelpLine(sBuilder, Tab, command.Name.PadRight(longestCommandName), command.Description, config.MaxWidth);
 
                     foreach (var option in command.Options ?? Array.Empty<Option>()) {
-                        var optionLabel = $"{shortOptPrefix}{(char)option.Value}, {longOptPrefix}{option.Name?.PadRight(longestCommandOptionName)}";
+                        var optionLabel = shortAlias is null
+                            ? $"{shortOptPrefix}{(char)option.Value}, {longOptPrefix}{option.Name?.PadRight(longestCommandOptionName)}"
+                            : TypedOptionLabel(option, shortAlias, shortOptPrefix, longOptPrefix, longestCommandOptionName);
                         AppendHelpLine(sBuilder, Tab + Tab, optionLabel, option.Description ?? string.Empty, config.MaxWidth);
                     }
                 }
@@ -268,6 +284,12 @@
             }
 
             return sBuilder.ToString();
+        }
+
+        private static string TypedOptionLabel(Option option, Func<Option, char?> shortAlias, string shortPrefix, string longPrefix, int width) {
+            var alias = shortAlias(option);
+
+            return $"{(alias.HasValue ? shortPrefix + alias.Value + ", " : string.Empty)}{longPrefix}{option.Name?.PadRight(width)}";
         }
 
         private static void AppendHelpLine(StringBuilder builder, string indentation, string label, string description, int maxWidth) {

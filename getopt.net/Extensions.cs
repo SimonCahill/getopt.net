@@ -12,7 +12,7 @@
         None,
 
         /// <summary>
-        /// If the first character of optstring is '+' or the environment variable POSIXLY_CORRECT is set, then option processing stops as soon as a nonoption argument is encountered.
+        /// Requests the engine's POSIX stop condition, also enabled by the POSIXLY_CORRECT environment variable.
         /// </summary>
         Plus = '+',
 
@@ -70,7 +70,7 @@
         /// Creates a short opt string from an array of <see cref="Option"/> objects.
         /// </summary>
         /// <param name="list">The options to convert.</param>
-        /// <returns><code>null</code> if the option list is empty or null. A string contain a shortopt-form string representing all the options from <paramref name="list"/>.</returns>
+        /// <returns>The aliases and argument-mode markers in declaration order, or an empty string for a null or empty option list.</returns>
         public static string ToShortOptString(this Option[] list) {
             if (list is null || list.Length == 0) { return string.Empty; }
 
@@ -97,7 +97,7 @@
         /// </summary>
         /// <param name="list">The options to convert.</param>
         /// <param name="prefix">The prefix to use for the shortopt string.</param>
-        /// <returns><code>null</code> if the option list is empty or null. A string contain a shortopt-form string representing all the options from <paramref name="list"/>.</returns>
+        /// <returns>The mode prefix followed by aliases and argument markers, or an empty string for a null or empty option list.</returns>
         public static string ToShortOptString(this Option[] list, OptStringPrefix prefix) {
             if (list is null || list.Length == 0) { return string.Empty; }
 
@@ -154,6 +154,18 @@
         /// <param name="generatorOptions">(Optional) Customised generator configuration.</param>
         /// <returns>A string value containing the help text.</returns>
         public static string GenerateHelpText(this GetOpt getopt, HelpTextConfig? generatorOptions = null) {
+            return GenerateHelpText(getopt, generatorOptions, null);
+        }
+
+        /// <summary>
+        /// Renders shared help while optionally using typed metadata to omit undeclared short aliases.
+        /// </summary>
+        /// <param name="getopt">The parser definitions and enabled conventions to describe.</param>
+        /// <param name="generatorOptions">Formatting and application metadata, or null for defaults.</param>
+        /// <param name="shortAlias">An alias resolver for typed definitions, or null to preserve legacy formatting.</param>
+        /// <returns>Formatted help, or an empty string when no options or commands exist.</returns>
+        /// <exception cref="ArgumentNullException">The parser is null.</exception>
+        internal static string GenerateHelpText(GetOpt getopt, HelpTextConfig? generatorOptions, Func<Option, char?>? shortAlias) {
             const string Tab = "    ";
             if (getopt is null) { throw new ArgumentNullException(nameof(getopt), "getopt must not be null!"); }
 
@@ -207,12 +219,22 @@
 
             sBuilder.AppendLine("Switches:");
             foreach (var opt in options.Where(o => o.ArgumentType == ArgumentType.None)) {
+                if (shortAlias is not null) {
+                    AppendHelpLine(sBuilder, Tab, TypedOptionLabel(opt, shortAlias, shortOptPrefix, longOptPrefix, longestName), opt.Description ?? string.Empty, config.MaxWidth);
+                    continue;
+                }
+
                 sBuilder.AppendLine($"{Tab}{shortOptPrefix}{(char)opt.Value}, {longOptPrefix}{opt.Name?.PadRight(longestName)}{opt.Description ?? string.Empty}");
             }
             sBuilder.AppendLine();
 
             sBuilder.AppendLine("Options:");
             foreach (var opt in options.Where(o => o.ArgumentType != ArgumentType.None)) {
+                if (shortAlias is not null) {
+                    AppendHelpLine(sBuilder, Tab, TypedOptionLabel(opt, shortAlias, shortOptPrefix, longOptPrefix, longestName), opt.Description ?? string.Empty, config.MaxWidth);
+                    continue;
+                }
+
                 var line = $"{Tab}{shortOptPrefix}{(char)opt.Value}, {longOptPrefix}{opt.Name?.PadRight(longestName)}{opt.Description ?? string.Empty}";
 
                 // If line is > config.MaxWidth, split it into multiple lines and align the description
@@ -256,7 +278,9 @@
                     AppendHelpLine(sBuilder, Tab, command.Name.PadRight(longestCommandName), command.Description, config.MaxWidth);
 
                     foreach (var option in command.Options ?? Array.Empty<Option>()) {
-                        var optionLabel = $"{shortOptPrefix}{(char)option.Value}, {longOptPrefix}{option.Name?.PadRight(longestCommandOptionName)}";
+                        var optionLabel = shortAlias is null
+                            ? $"{shortOptPrefix}{(char)option.Value}, {longOptPrefix}{option.Name?.PadRight(longestCommandOptionName)}"
+                            : TypedOptionLabel(option, shortAlias, shortOptPrefix, longOptPrefix, longestCommandOptionName);
                         AppendHelpLine(sBuilder, Tab + Tab, optionLabel, option.Description ?? string.Empty, config.MaxWidth);
                     }
                 }
@@ -270,6 +294,32 @@
             return sBuilder.ToString();
         }
 
+        /// <summary>
+        /// Builds an option label using only its declared aliases.
+        /// </summary>
+        /// <param name="option">The option whose long name is displayed.</param>
+        /// <param name="shortAlias">Resolves its declared short alias, or null for a long-only option.</param>
+        /// <param name="shortPrefix">The short-option prefix for the selected help convention.</param>
+        /// <param name="longPrefix">The long-option prefix for the selected help convention.</param>
+        /// <param name="width">The padding width for the long name.</param>
+        /// <returns>A padded option label with an optional short alias and separator.</returns>
+        private static string TypedOptionLabel(Option option, Func<Option, char?> shortAlias, string shortPrefix, string longPrefix, int width) {
+            var alias = shortAlias(option);
+
+            return $"{(alias.HasValue ? shortPrefix + alias.Value + ", " : string.Empty)}{longPrefix}{option.Name?.PadRight(width)}";
+        }
+
+        /// <summary>
+        /// Wraps a help description while aligning continuation lines beneath its first character.
+        /// </summary>
+        /// <param name="builder">The destination help-text buffer.</param>
+        /// <param name="indentation">Indentation for the option or command scope.</param>
+        /// <param name="label">The already padded option or command label.</param>
+        /// <param name="description">The description to wrap.</param>
+        /// <param name="maxWidth">The desired total width; a label wider than this limit is still emitted in full.</param>
+        /// <remarks>
+        /// Long words are split when no whitespace boundary fits. At least one description character is emitted per wrapped line.
+        /// </remarks>
         private static void AppendHelpLine(StringBuilder builder, string indentation, string label, string description, int maxWidth) {
             var descriptionPrefix = $"{indentation}{label} ";
             if (string.IsNullOrEmpty(description) || descriptionPrefix.Length + description.Length <= maxWidth) {
@@ -297,6 +347,7 @@
         /// <summary>
         /// Gets the name of the application.
         /// </summary>
+        /// <returns>The entry assembly's name, or <c>Unknown</c> when the entry assembly or its name is unavailable.</returns>
         public static string GetApplicationName() {
             return System.Reflection.Assembly.GetEntryAssembly()?.GetName().Name ?? "Unknown";
         }

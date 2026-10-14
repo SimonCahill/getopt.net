@@ -239,6 +239,137 @@ This is a reference implementation of getopt.net in C#.
 
 For a more detailled description of using getopt.net, please consult the Wiki.
 
+## Typed C# usage (v1.2.0)
+
+The `getopt.net.Typed` namespace adds fluent and attribute-based APIs in the same NuGet package. Both use the existing getopt parser and accept the same command-line conventions. Existing `GetOpt` applications require no changes.
+
+### Fluent configuration
+
+Declare plain options classes and bind their properties in code:
+
+```csharp
+using getopt.net.Typed;
+
+public class AppOptions {
+
+    public bool Verbose { get; set; }
+
+    public string Output { get; set; } = "output.txt";
+
+    public int Retries { get; set; } = 3;
+
+    public ConfigOptions? Config { get; set; }
+
+}
+
+public class ConfigOptions {
+
+    public bool Create { get; set; }
+
+    public string[] Arguments { get; set; } = Array.Empty<string>();
+
+}
+```
+
+Inside your application's entry point:
+
+```csharp
+var parser = new ParserBuilder<AppOptions>()
+    .AddFlag(options => options.Verbose, "verbose", 'v', "Enable verbose output.")
+    .AddOption(options => options.Output, "output", 'o', "Output file.")
+    .AddOption(options => options.Retries, "retries", 'r')
+    .AddCommand(options => options.Config, "config", command => command
+        .AddFlag(options => options.Create, "create", 'c')
+        .AddArguments(options => options.Arguments), "Manage configuration.")
+    .Build();
+
+AppOptions options = parser.Parse(args);
+```
+
+For `myapp -v --output=result.txt config --create input.txt`, `options.Verbose` is true, `options.Output` is `"result.txt"`, and `options.Config` contains `Create = true` and the operand `"input.txt"`. Global options precede the command. A global-only invocation leaves `Config` null; `config` alone still creates its model.
+
+### Attribute configuration
+
+Alternatively, put the declarations on the model itself:
+
+```csharp
+using getopt.net.Typed;
+
+public class AppOptions {
+
+    [CliOption("verbose", ShortName = 'v', Description = "Enable verbose output.")]
+    public bool Verbose { get; set; }
+
+    [CliOption("output", ShortName = 'o', Description = "Output file.")]
+    public string Output { get; set; } = "output.txt";
+
+    [CliOption("retries", ShortName = 'r')]
+    public int Retries { get; set; } = 3;
+
+    [CliCommand("config", Description = "Manage configuration.")]
+    public ConfigOptions? Config { get; set; }
+
+}
+
+public class ConfigOptions {
+
+    [CliOption("create", ShortName = 'c')]
+    public bool Create { get; set; }
+
+    [CliArguments]
+    public string[] Arguments { get; set; } = Array.Empty<string>();
+
+}
+```
+
+Then use `CommandLine.Parse<AppOptions>(args)` or create a reusable parser with `CommandLine.CreateParser<AppOptions>()`. Both approaches return the same `Parser<AppOptions>` type. Fluent configuration reads attributes only when `.UseAttributes()` is explicitly called; duplicate bindings are rejected.
+
+### Input errors and help
+
+`Parse` throws `TypedParseException`, which derives from `ParseException`. `TryParse` returns the first input error without exposing a partially populated model:
+
+```csharp
+var parser = CommandLine.CreateParser<AppOptions>();
+if (!parser.TryParse(args, out var options, out var error)) {
+    Console.Error.WriteLine(error!.Message);
+    Console.Error.WriteLine(parser.GenerateHelpText(new getopt.net.HelpTextConfig {
+        ApplicationName = "myapp"
+    }));
+
+    return;
+}
+
+Console.WriteLine(options!.Output);
+```
+
+Errors expose `Kind`, `Name`, `Value` and `PossibleCommands`. Unknown options and missing values are errors in the typed API; legacy error settings remain unchanged. Configuration errors, exceptions from model constructors or setters, and file I/O failures still throw. Help generation does not print anything or reserve help/version aliases.
+
+### Binding rules and conventions
+
+- Use concrete classes with public parameterless constructors and public readable/writable properties. Command properties must initially be null. One level of commands is supported.
+- Long names are explicit and have no prefixes. Short aliases are optional ASCII letters or digits. Names and aliases must be unique within each scope.
+- Boolean values default to flags. Use `argumentType: ArgumentType.Required` in fluent configuration or `ArgumentType = ArgumentType.Required` on an attribute to accept an explicit boolean value instead. Import `getopt.net` for `ArgumentType`.
+- Non-boolean values require an argument by default, but the option itself is optional. Set `required: true` or `Required = true` to require its presence.
+- Use `ArgumentType.Optional` for optional arguments. Absent options and omitted optional values retain property initializers. An explicitly empty string remains empty; empty nullable values become null.
+- Repeated scalar values use the last occurrence. `T[]` and `List<T>` collect occurrences after initialized defaults, without splitting commas.
+- Supported values include strings, primitive numbers, booleans, enums, `Guid`, `DateTime`, `DateTimeOffset`, `TimeSpan`, nullable forms and types with string-capable `TypeConverter` implementations. Conversion uses invariant culture; enum names ignore case.
+- Bind non-options with `AddArguments` or `[CliArguments]` on a `string[]`. Unbound non-options are errors. `--` ends option parsing by default.
+- Configure `AllowWindowsConventions`, `AllowPowershellConventions`, `AllowParamFiles`, `CaseInsensitiveMatching` and `DoubleDashStopsParsing` through `ParserSettings`. Short aliases remain case-sensitive. Existing parameter-file ordering and `POSIXLY_CORRECT` behavior are retained.
+- Each parse creates fresh models and copies the input array. Built parsers can be reused concurrently; later builder or settings changes do not affect them. Application-provided constructors, setters and converters remain responsible for their own external side effects.
+
+For example, enable alternate conventions identically for either declaration style:
+
+```csharp
+var settings = new ParserSettings {
+    AllowWindowsConventions = true,
+    AllowPowershellConventions = true,
+    AllowParamFiles = true
+};
+
+var attributedParser = CommandLine.CreateParser<AppOptions>(settings);
+var fluentBuilder = new ParserBuilder<AppOptions>(settings);
+```
+
 ## Basic usage in C♯
 
 ```csharp

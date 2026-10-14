@@ -1,5 +1,16 @@
 # getop.net changelog
 
+# v1.2.0
+Version 1.2.0 adds optional typed C# APIs alongside the existing getopt API.
+
+## Changes
+ - Added `getopt.net.Typed.ParserBuilder<T>` for fluent property binding and `CommandLine` for attribute-based parsing.
+ - Added `CliOption`, `CliCommand` and `CliArguments` attributes with equivalent fluent declarations.
+ - Added typed command models, required option presence, repeated values and invariant-culture conversion.
+ - Added reusable parsers, input-array isolation, `Parse`/`TryParse` and structured input errors.
+ - Added typed help generation with optional short aliases and the existing `HelpTextConfig`.
+ - Preserved existing getopt APIs, CLI conventions, .NET Framework 4.6/.NET 8 targets and build workflows.
+
 # v1.1.0
 Version 1.1.0 adds optional, backwards-compatible support for main commands and their getopt-style subcommands.
 

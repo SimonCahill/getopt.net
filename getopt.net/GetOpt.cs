@@ -97,11 +97,18 @@
         /// </summary>
         public bool DoubleDashStopsParsing { get; set; } = true;
 
+        /// <summary>
+        /// Stores the mutable input buffer, which can be rewritten during parsing and expanded by parameter files.
+        /// </summary>
         private string[] m_appArgs = Array.Empty<string>();
 
         /// <summary>
         /// Gets or sets the arguments to parse.
         /// </summary>
+        /// <remarks>
+        /// Parsing can rewrite this array and parameter-file expansion can replace it with a larger array.
+        /// Assigning a new array does not reset the cursor or command state; use a fresh parser for a new invocation.
+        /// </remarks>
         public string[] AppArgs {
             get => m_appArgs;
             set => m_appArgs = value;
@@ -114,7 +121,7 @@
         public bool OnlyShortOpts { get; set; } = false;
 
         /// <summary>
-        /// Gets or sets a value indicating whether or not to ignore empty values.
+        /// Gets or sets whether an empty input element ends the current parse call instead of throwing.
         /// Default: <code  >true</code>
         /// </summary>
         public bool IgnoreEmptyOptions { get; set; } = true;
@@ -193,10 +200,10 @@
         public bool AllowParamFiles { get; set; } = false;
 
         /// <summary>
-        /// Either enables or disabled exceptions entirely.
-        /// For more specific control over exceptions, see the other options provided by GetOpt.
+        /// Gets or sets the aggregate ignore flags for empty input, empty options, missing arguments and invalid options.
+        /// Structural errors such as attempting long-option parsing without definitions can still throw.
         /// </summary>
-        /// <value><code >true</code> if exceptions are enabled, <code >false</code> otherwise.</value>
+        /// <value>True when all ignore flags are enabled; assigning false clears every ignore flag.</value>
         public bool AllExceptionsDisabled {
             get => IgnoreEmptyAppArgs && IgnoreEmptyOptions && IgnoreMissingArgument && IgnoreInvalidOptions && IgnoreEmptyAppArgs;
             set => IgnoreEmptyAppArgs = IgnoreEmptyOptions = IgnoreMissingArgument = IgnoreInvalidOptions = IgnoreEmptyAppArgs = value;
@@ -217,8 +224,8 @@
         /// Specialised constructor.
         /// </summary>
         /// <param name="appArgs">The arguments passed to the application.</param>
-        /// <param name="shortOpts"></param>
-        /// <param name="options"></param>
+        /// <param name="shortOpts">Short aliases, with a colon for required values, a semicolon for optional values and an optional mode prefix.</param>
+        /// <param name="options">Long-option definitions and fallback argument modes for short aliases.</param>
         public GetOpt(string[] appArgs, string shortOpts, params Option[] options) {
             AppArgs = appArgs;
             ShortOpts = shortOpts;
@@ -235,10 +242,19 @@
         /// </summary>
         protected int m_optPosition = 1; // this applies to short opts only, where [0] == '-'
 
+        /// <summary>
+        /// Gets the selected command's long options, or global options before command selection.
+        /// </summary>
         private Option[] ActiveOptions => SelectedCommand?.Options ?? Options;
 
+        /// <summary>
+        /// Gets the selected command's short-option specification, falling back to the global specification when it is null.
+        /// </summary>
         private string? ActiveShortOpts => SelectedCommand?.ShortOpts ?? ShortOpts;
 
+        /// <summary>
+        /// Gets the invariant-culture comparison selected for command and long-option names.
+        /// </summary>
         private StringComparison NameComparison => CaseInsensitiveMatching ? StringComparison.InvariantCultureIgnoreCase : StringComparison.InvariantCulture;
 
         /// <summary>
@@ -269,24 +285,29 @@
         /// > written to expect options and other argv-elements in any order
         /// > and that care about the ordering of the two.)
         /// </remarks>
-        /// <returns></returns>
+        /// <returns>True when the active short-option specification begins with a minus sign; false otherwise.</returns>
         protected bool MustReturnChar1() => ActiveShortOpts?.Length > 0 && ActiveShortOpts[0] == '-';
 
         /// <summary>
-        /// If the first character of
-        /// ShortOpts is '+' or the environment variable POSIXLY_CORRECT is
-        /// set, then option processing stops as soon as a nonoption argument
-        /// is encountered.
+        /// Checks whether the active short-option specification or POSIXLY_CORRECT enables the engine's POSIX stop condition.
         /// </summary>
-        /// <returns><code >true</code> if parsing stops when the first non-option string is found.</returns>
+        /// <returns>True when the active specification starts with a plus sign or POSIXLY_CORRECT is present.</returns>
+        /// <remarks>The current engine consults this condition when consuming a separate required option value.</remarks>
         protected bool MustStopParsing() => ActiveShortOpts?.Length > 0 && ActiveShortOpts[0] == '+' || Environment.GetEnvironmentVariable("POSIXLY_CORRECT") is not null;
 
         /// <summary>
         /// Gets the next option in the list.
         /// </summary>
         /// <param name="outOptArg">Out var; the argument for the option (if applicable).</param>
-        /// <returns>The next option.</returns>
-        /// <exception cref="ParseException">If ignoring errors is disabled (default) and an error occurs.</exception>
+        /// <returns>
+        /// A short alias or long-option identifier, -1 at the end of input, or an error/operand sentinel.
+        /// Ignored unknown options return <see cref="InvalidOptChar"/>; ignored missing values return <see cref="MissingArgChar"/>.
+        /// Operands return <see cref="NonOptChar"/> in in-order or post-double-dash mode and <see cref="InvalidOptChar"/> otherwise.
+        /// </returns>
+        /// <exception cref="ParseException">A nonignored input error or an invalid parser configuration is encountered.</exception>
+        /// <exception cref="CommandMisspeltException">An unknown command has plausible spelling suggestions and invalid options are not ignored.</exception>
+        /// <exception cref="CommandNotFoundException">An unknown command has no plausible suggestions and invalid options are not ignored.</exception>
+        /// <remarks>Consumes state on this instance. A bare command updates <see cref="SelectedCommand"/> without returning a separate command token.</remarks>
         public int GetNextOpt(out string? outOptArg) {
             if (AppArgs.Length == 0) {
                 if (!IgnoreEmptyAppArgs) {
@@ -352,6 +373,16 @@
             return MustReturnChar1() ? NonOptChar : InvalidOptChar;
         }
 
+        /// <summary>
+        /// Consumes a bare command and continues parsing within its option scope.
+        /// </summary>
+        /// <param name="optArg">The next option argument, or the unknown command name when errors are ignored.</param>
+        /// <returns>The next parser result after command selection, or the invalid-option sentinel for an ignored unknown command.</returns>
+        /// <remarks>
+        /// A command has no separate return code. SelectedCommand is updated even when the command is the last input token.
+        /// </remarks>
+        /// <exception cref="CommandMisspeltException">Strict matching fails and plausible command suggestions exist.</exception>
+        /// <exception cref="CommandNotFoundException">Strict matching fails without plausible command suggestions.</exception>
         private int ParseMainCommand(out string? optArg) {
             var commandName = AppArgs[CurrentIndex];
             var command = Array.Find(Commands, item => item.Name.Equals(commandName, NameComparison));
@@ -377,6 +408,14 @@
             return InvalidOptChar;
         }
 
+        /// <summary>
+        /// Finds equally close command names within the accepted spelling-distance threshold.
+        /// </summary>
+        /// <param name="commandName">The command spelling entered by the user.</param>
+        /// <returns>Closest acceptable names in declaration order, or an empty array.</returns>
+        /// <remarks>
+        /// Names are normalized with invariant uppercase for suggestions, independently of exact command-matching case settings.
+        /// </remarks>
         private string[] FindCommandSuggestions(string commandName) {
             if (Commands.Length == 0) { return Array.Empty<string>(); }
 
@@ -397,13 +436,28 @@
                 .ToArray();
         }
 
+        /// <summary>
+        /// Selects the maximum edit distance considered plausible for a command spelling.
+        /// </summary>
+        /// <param name="inputLength">Length of the entered command.</param>
+        /// <param name="candidateLength">Length of a declared command.</param>
+        /// <returns>One for lengths through four, two through eight, and three for longer names, using the larger length.</returns>
         private static int SuggestionThreshold(int inputLength, int candidateLength) {
             var length = Math.Max(inputLength, candidateLength);
-            if (length <= 4) { return 1; }
-            if (length <= 8) { return 2; }
-            return 3;
+
+            return length switch {
+                <= 4 => 1,
+                <= 8 => 2,
+                _ => 3
+            };
         }
 
+        /// <summary>
+        /// Computes an edit distance allowing insertion, deletion, substitution and adjacent transposition.
+        /// </summary>
+        /// <param name="source">The normalized input spelling.</param>
+        /// <param name="target">The normalized declared spelling.</param>
+        /// <returns>The restricted Damerau-Levenshtein, or optimal string alignment, distance between the strings.</returns>
         private static int DamerauLevenshteinDistance(string source, string target) {
             var distances = new int[source.Length + 1, target.Length + 1];
             for (var i = 0; i <= source.Length; i++) { distances[i, 0] = i; }
@@ -430,6 +484,10 @@
         /// Gets the next option in the list, returning an object containing more detailled information about the option.
         /// </summary>
         /// <returns>An instance of <see cref="CommandOption"/> containing more detailled information about the option and argument (if applicable).</returns>
+        /// <remarks>
+        /// Tries boolean, double, float and integer conversion in that order, using the current culture, then retains the raw string.
+        /// For the integer option identifier, use the out-argument overload; the current CommandOption constructor does not store that identifier.
+        /// </remarks>
         public CommandOption GetNextOpt() {
             var optChar = GetNextOpt(out var optArg);
 
@@ -484,13 +542,16 @@
                 case ArgumentType.Required:
                     if (optArg == null && (CurrentIndex + 1 >= AppArgs.Length || IsLongOption(AppArgs[CurrentIndex + 1]) || IsShortOption(AppArgs[CurrentIndex + 1]))) {
                         ++m_currentIndex;
-                        if (IgnoreMissingArgument) {
-                            optArg = AppArgs[CurrentIndex - 1];
-                            return MissingArgChar;
-                        } else {
-                            throw new ParseException(AppArgs[CurrentIndex - 1], "Missing required argument!");
+                        if (!IgnoreMissingArgument) {
+                            throw new ParseException(AppArgs[CurrentIndex - 1], "Missing required argument!", true);
                         }
-                    } else if (optArg != null) { break; }
+
+                        optArg = AppArgs[CurrentIndex - 1];
+                        return MissingArgChar;
+
+                    }
+
+                    if (optArg != null) { break; }
 
                     optArg = AppArgs[CurrentIndex + 1];
                     if (MustStopParsing()) { // POSIX behaviour desired
@@ -533,19 +594,20 @@
                 return false;
             }
 
-            if (!IsLongOption(AppArgs[CurrentIndex + 1]) && !IsShortOption(AppArgs[CurrentIndex + 1])) {
-                arg = AppArgs[CurrentIndex + 1];
-
-                if (MustStopParsing()) {
-                    m_currentIndex = AppArgs.Length; // POSIX behaviour desired
-                } else {
-                    incrementCurrentIndex = true;
-                }
-
-                return true;
+            if (IsLongOption(AppArgs[CurrentIndex + 1]) || IsShortOption(AppArgs[CurrentIndex + 1])) {
+                return false;
             }
 
-            return false;
+            arg = AppArgs[CurrentIndex + 1];
+
+            if (MustStopParsing()) {
+                m_currentIndex = AppArgs.Length; // POSIX behaviour desired
+            } else {
+                incrementCurrentIndex = true;
+            }
+
+            return true;
+
         }
 
         /// <summary>
@@ -559,34 +621,38 @@
             var curOpt = AppArgs[CurrentIndex][m_optPosition];
 
             var argType = ShortOptRequiresArg(curOpt);
-            if (argType is null) {
-                ResetOptPosition();
-                m_currentIndex++;
-                return InvalidOptChar;
-            } else if (argType is ArgumentType type) {
-                bool incrementCurrentIndex;
+            switch (argType) {
+                case null:
+                    ResetOptPosition();
+                    m_currentIndex++;
+                    return InvalidOptChar;
+                case ArgumentType type: {
+                    bool incrementCurrentIndex;
 
-                switch (type) {
-                    default:
-                        if (AppArgs[CurrentIndex].Length > AppArgs[CurrentIndex].IndexOf(curOpt) + 1) {
-                            m_optPosition++;
-                            return curOpt;
-                        }
-                        break;
-                    case ArgumentType.Optional:
-                        TryGetArgumentForShortOption(ref optArg, out incrementCurrentIndex);
-                        if (incrementCurrentIndex) { m_currentIndex++; }
-                        break;
-                    case ArgumentType.Required:
-                        if (!TryGetArgumentForShortOption(ref optArg, out incrementCurrentIndex)) {
-                            if (IgnoreMissingArgument) {
-                                if (incrementCurrentIndex) { m_currentIndex++; }
-                                return MissingArgChar;
+                    switch (type) {
+                        default:
+                            if (AppArgs[CurrentIndex].Length > AppArgs[CurrentIndex].IndexOf(curOpt) + 1) {
+                                m_optPosition++;
+                                return curOpt;
                             }
-                            else { throw new ParseException(curOpt.ToString(), "Missing argument for option!"); }
-                        }
-                        if (incrementCurrentIndex) { m_currentIndex++; }
-                        break;
+                            break;
+                        case ArgumentType.Optional:
+                            TryGetArgumentForShortOption(ref optArg, out incrementCurrentIndex);
+                            if (incrementCurrentIndex) { m_currentIndex++; }
+                            break;
+                        case ArgumentType.Required:
+                            if (!TryGetArgumentForShortOption(ref optArg, out incrementCurrentIndex)) {
+                                if (IgnoreMissingArgument) {
+                                    if (incrementCurrentIndex) { m_currentIndex++; }
+                                    return MissingArgChar;
+                                }
+                                else { throw new ParseException(curOpt.ToString(), "Missing argument for option!", true); }
+                            }
+                            if (incrementCurrentIndex) { m_currentIndex++; }
+                            break;
+                    }
+
+                    break;
                 }
             }
 
@@ -600,7 +666,7 @@
         /// Gets a value indicating whether or not a short option requires an argument.
         /// </summary>
         /// <param name="shortOpt">The opt to check for.</param>
-        /// <returns><code >true</code> if the short opt requires an argument.</returns>
+        /// <returns>The declared argument mode, or null for an ignored unknown short option.</returns>
         /// <exception cref="ParseException">If ignoring errors is disabled (default) and an error occurs during parsing.</exception>
         protected ArgumentType? ShortOptRequiresArg(char shortOpt) {
             if (ActiveShortOpts is not null && !string.IsNullOrEmpty(ActiveShortOpts)) {
@@ -790,7 +856,7 @@
         /// </remarks>
         /// <param name="arg">The argument to check.</param>
         /// <param name="paramFile">An out param containing either null or the path to the file.</param>
-        /// <returns><code>true</code> if the passed argument is a valid paramfile option. <code>false</code> otherwise.</returns>
+        /// <returns>True for parameter-file syntax when enabled, even if the file is missing; false otherwise.</returns>
         protected bool IsParamFileArg(string arg, out string? paramFile) {
             paramFile = null; // pre-set this so we don't have to do it everywhere
             if (string.IsNullOrEmpty(arg) || !AllowParamFiles || arg.Length < 2) { return false; }
@@ -810,6 +876,11 @@
         /// Reads the incoming param file and adds the contents to <see cref="AppArgs"/>
         /// </summary>
         /// <param name="paramFile">The file to read.</param>
+        /// <remarks>
+        /// File lines are appended after the original input rather than inserted at the reference token.
+        /// Empty and comment lines leave empty buffer slots, which are handled by the ordinary empty-input rules.
+        /// File I/O exceptions propagate to the caller.
+        /// </remarks>
         protected void ReadParamFile(FileInfo paramFile) {
             if (paramFile == null || !paramFile.Exists) { return; }
 
